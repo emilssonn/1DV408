@@ -5,20 +5,19 @@ namespace Model;
 class Time {
 
 	/**
-	 * [$days description]
+	 * Array of days in swedish
 	 * @var array
 	 */
 	private static $days = array("Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag");
 
 	/**
-	 * [$months description]
+	 * Array of months in swedish
 	 * @var array
 	 */
 	private static $months = array("Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September", "Oktober", "November", "December");
 
 	/**
-	 * [getFullTimeString description]
-	 * @return [type] [description]
+	 * @return String
 	 */
 	public function getFullTimeString() {
 		$dateArray = getdate();

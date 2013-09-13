@@ -10,26 +10,24 @@ class UserLogin {
 	private static $sessionLocation = "model::UserModel::user";
 
 	/**
-	 * [__construct description]
+	 * Checks of session have started
 	 */
 	public function __construct() {
 		assert(isset($_SESSION));
 	}
 
 	/**
-	 * [login description]
-	 * @return [type] [description]
+	 * @return \Model\User
 	 */
 	public function login() {
 		if (isset($_SESSION[self::$sessionLocation])) {
 			return $_SESSION[self::$sessionLocation];
 		}
-		return new User();
+		return new \Model\User();
 	}
 
 	/**
-	 * [logout description]
-	 * @return [type] [description]
+	 * @return bool, true if successfull
 	 */
 	public function logout() {
 		try {
@@ -41,9 +39,7 @@ class UserLogin {
 	}
 
 	/**
-	 * [saveUser description]
-	 * @param  ModelUser $user [description]
-	 * @return [type]          [description]
+	 * @param  \Model\User $user
 	 */
 	public function saveUser(\Model\User $user) {
 		$_SESSION[self::$sessionLocation] = $user;

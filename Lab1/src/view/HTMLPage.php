@@ -7,7 +7,9 @@ require_once("/../model/Time.php");
 class HTMLPage {
 
 	/**
-	 * HTML/CSS from http://getbootstrap.com/examples/signin/
+	 * @param  String $title, page title
+	 * @param  String $body, HTML body
+	 * @return HTML, string of full page HTML
 	 */
 	public function getHTML($title, $body) {
 		$time = new \Model\Time();
@@ -23,14 +25,13 @@ class HTMLPage {
 
 					<title>$title</title>
 
-					<link href='css/bootstrap.css' rel='stylesheet'>
-					<link href='css/signin.css' rel='stylesheet'>
-
 				</head>
 
 				<body>
-					<div class='container'>
+					<div>
+						<h1>Laboration 1</h1>
 						$body
+						<hr/>
 						<p>$timeString</p>
 					</div>
 				</body>

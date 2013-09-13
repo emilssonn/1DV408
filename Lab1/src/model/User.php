@@ -28,14 +28,27 @@ class User {
 	private $password;
 
 	/**
-	 * [$isUserLoggedIn description]
 	 * @var boolean
 	 */
 	private $isUserLoggedIn = false;
 
+		/**
+	 * @return String, return the username
+	 */
+	public function getUsername() {
+		return $this->username;
+	}
+
 	/**
-	 * @param String $username
-	 * @param String $password
+	 * @param String $username, sets the username
+	 */
+	public function setUsername($username) {
+		$this->username = $username;
+	}
+
+	/**
+	 * @param String $username, not required
+	 * @param String $password, not required
 	 */
 	public function __construct($username = null, $password = null) {
 		$this->username = $username;
@@ -43,8 +56,7 @@ class User {
 	}
 
 	/**
-	 * [login description]
-	 * @return bool returns true of successfull
+	 * @return bool, returns true if successfull
 	 */
 	public function login($username, $password) {
 		$this->username = $username;
@@ -58,23 +70,13 @@ class User {
 	}
 
 	/**
-	 * [getUsername description]
-	 * @return [type] [description]
-	 */
-	public function getUsername() {
-		return $this->username;
-	}
-
-	/**
-	 * [isUserLoggedIn description]
-	 * @return boolean [description]
+	 * @return boolean, returns true if logged in
 	 */
 	public function isUserLoggedIn() {
 		return $this->isUserLoggedIn;
 	}
 
 	/**
-	 * [logout description]
 	 * @return [type] [description]
 	 */
 	public function logout() {
