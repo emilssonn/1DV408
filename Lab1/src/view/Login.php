@@ -126,8 +126,7 @@ class Login {
 			$html .= "<p>$this->message</p>";
 		}
 
-		$html .= "<a href='?logout'>Logga ut</a>
-				</form>";
+		$html .= "<a href='?logout'>Logga ut</a>";
 
 		return $html;
 	}
