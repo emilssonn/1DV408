@@ -19,7 +19,7 @@ class UserLogin {
 	/**
 	 * @return \Model\User
 	 */
-	public function login() {
+	public function load() {
 		if (isset($_SESSION[self::$sessionLocation])) {
 			return $_SESSION[self::$sessionLocation];
 		}
@@ -41,7 +41,7 @@ class UserLogin {
 	/**
 	 * @param  \Model\User $user
 	 */
-	public function saveUser(\Model\User $user) {
+	public function login(\Model\User $user) {
 		$_SESSION[self::$sessionLocation] = $user;
 	}
 }

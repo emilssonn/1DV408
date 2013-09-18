@@ -2,12 +2,9 @@
 
 namespace Controller;
 
-require_once("/../view/Login.php");
-require_once("/../model/User.php");
+require_once("./src/view/Login.php");
+require_once("./src/model/User.php");
 
-/**
- * 
- */
 class Login {
 
 	/**
@@ -25,6 +22,14 @@ class Login {
 	 */
 	private $userLogin;
 
+	public function getPageTitle() {
+		if ($this->user->isUserLoggedIn()) {
+			return "Laboration: Inloggad";
+		} else {
+			return "Laboration: Ej inloggad";
+		}	
+	}
+
 	/**
 	 * @param \Model\User 		$user      
 	 * @param \Model\UserLogin 	$userLogin 
@@ -37,37 +42,34 @@ class Login {
 
 	/**
 	 * Checks what action the user has taken.
-	 * @return HTML returns a string of HTML
+	 * @return string, returns a string of HTML
 	 */
 	public function checkUser() {
-		if($this->user->isUserLoggedIn() && !$this->loginView->userWantsToLogout() ) {
-			
+		if($this->user->isUserLoggedIn() && !$this->loginView->userWantsToLogout() ) {		
+			//Logged in
 			return $this->loginView->getLoggedInHTML();
-		}
-		else if ($this->loginView->userWantsToLogin() && !$this->user->isUserLoggedIn()) {
-			
+		} else if ($this->loginView->userWantsToLogin() && !$this->user->isUserLoggedIn()) {
+			//Wants to log in
 			try {
 				$userInfo = $this->loginView->getLoginInfo();
-				if ($this->user->login($userInfo["username"], $userInfo["password"])) {
-					
-					$this->userLogin->saveUser($this->user);
+				try {
+					$this->user->login($userInfo["username"], $userInfo["password"]);
+					$this->userLogin->login($this->user);
 					return $this->loginView->getLoggedInHTML("Inloggningen lyckades");
-				} else {
-					
-					return $this->loginView->getLoginForm("Felaktigt användarnamn och/eller lösenord");
+				} catch(\Exception $e) {	
+					return $this->loginView->getLoginForm($e->getMessage());
 				}
 
-			} catch(\Exception $e) {
-				
-				return $this->loginView->getLoginForm($e->getMessage());
+			} catch(\Exception $e) {			
+				return $this->loginView->getLoginForm();
 			}
 		} else if ($this->user->isUserLoggedIn() && $this->loginView->userWantsToLogout() ) {
-			
+			//Log out
 			$this->userLogin->logout();
-			$this->user->logout();
-			return $this->loginView->getLoginForm("Utloggningen lyckades");
+			$this->user->logOut();
+			return $this->loginView->getLoginForm("Du har nu loggat ut");
 		} else {
-			
+			//Default page, login form
 			return $this->loginView->getLoginForm();
 		}
 	}

@@ -2,7 +2,7 @@
 
 namespace View;
 
-require_once("/../model/Time.php");
+require_once("./src/model/Time.php");
 
 class HTMLPage {
 
@@ -29,7 +29,7 @@ class HTMLPage {
 
 				<body>
 					<div>
-						<h1>Laboration 1</h1>
+						<h1>Laborationskod pe222bz</h1>
 						$body
 						<hr/>
 						<p>$timeString</p>

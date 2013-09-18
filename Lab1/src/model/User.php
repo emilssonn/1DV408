@@ -2,9 +2,6 @@
 
 namespace Model;
 
-/**
- * 
- */
 class User {
 
 	/**
@@ -32,7 +29,7 @@ class User {
 	 */
 	private $isUserLoggedIn = false;
 
-		/**
+	/**
 	 * @return String, return the username
 	 */
 	public function getUsername() {
@@ -66,7 +63,7 @@ class User {
 			$this->isUserLoggedIn = true;
 			return true;
 		} 
-		return false;
+		throw new \Exception("Felaktigt användarnamn och/eller lösenord");
 	}
 
 	/**
@@ -76,12 +73,10 @@ class User {
 		return $this->isUserLoggedIn;
 	}
 
-	/**
-	 * @return [type] [description]
-	 */
-	public function logout() {
+	public function logOut() {
 		$this->username = "";
 		$this->password = "";
+		$this->isUserLoggedIn = false;
 	}
 
 }
