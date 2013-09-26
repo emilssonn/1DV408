@@ -8,11 +8,13 @@ require_once('PageView.php');
 
 class MasterController {
 	public static function doControll() {
+		// @error, old comment
 		//TODO: Show that this is a controller
 		$likeController = new LikeController();
 		
 		$html = $likeController->doControll();
 		
+		// @error, old comment
 		//TODO: Use Common/PageView
 		$pageView = new \Common\PageView();
 		

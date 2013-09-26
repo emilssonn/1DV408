@@ -5,17 +5,16 @@ require_once('LikeView.php');
 
 
 class LikeController {
+	
 	/**
-	 * hantera en knapptryckning
-	 * visa en like knapp
-	 * visa hur många likes
-	 * 
-	 * 
+	 * handle button press
+	 * show "like" button
+	 * show number of likes
 	 * @return String HTML
 	 */
 	public function doControll() {
 		$likeView = new LikeView();
-		$likeModel = new LikeModel();
+	 	$likeModel = new LikeModel();
 		
 		//Handle input and collect messages
 		$message = LikeView::NO_MESSAGE;

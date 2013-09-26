@@ -2,7 +2,7 @@
 
 namespace View;
 
-require_once("./src/model/Time.php");
+require_once("./src/view/Time.php");
 
 class HTMLPage {
 
@@ -12,9 +12,9 @@ class HTMLPage {
 	 * @return HTML, string of full page HTML
 	 */
 	public function getHTML($title, $body) {
-		$time = new \Model\Time();
+		$timeView = new \View\Time();
 
-		$timeString = $time->getFullTimeString();
+		$timeString = $timeView->getFullTimeString();
 
 		return "
 			<!DOCTYPE html>

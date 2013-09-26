@@ -10,24 +10,30 @@ class Login {
 	 * Name in HTML form and location in $_POST
 	 * @var string
 	 */
-	private static $username = "LoginView::Username";
+	private static $usernamePOST = "View::Login::Username";
 
 	/**
 	 * Name in HTML form and location in $_POST
 	 * @var string
 	 */
-	private static $password = "LoginView::Password";
+	private static $passwordPOST = "View::Login::Password";
+
+	/**
+	 * Name in URL for login
+	 * @var string
+	 */
+	private static $loginGET = "login";
+
+	/**
+	 * Name in URL for logout
+	 * @var string
+	 */
+	private static $logoutGET = "logout";
 
 	/**
 	 * @var \Model\User
 	 */
-	private $user;
-
-	/**
-	 * username and password
-	 * @var array
-	 */
-	private $userInfo = array();
+	private $userModel;
 
 	/**
 	 * @var string
@@ -38,7 +44,7 @@ class Login {
 	 * @param \Model\User $user
 	 */
 	public function __construct(\Model\User $user) {
-		$this->user = $user;
+		$this->userModel = $user;
 	}
 
 	/**
@@ -46,7 +52,7 @@ class Login {
 	 * @return bool
 	 */
 	public function userWantsToLogin() {
-		return isset($_GET['login']);
+		return isset($_GET[self::$loginGET]);
 	}
 
 	/**
@@ -54,29 +60,27 @@ class Login {
 	 * @return bool
 	 */
 	public function userWantsToLogout() {
-		return isset($_GET['logout']);
+		return isset($_GET[self::$logoutGET]);
 	}
 
 	/**
-	 * @return array, return array with username and password
+	 * sets the username and password on the model
 	 * @throws Exception if input does not exist
 	 */
-	public function getLoginInfo() {
+	public function loginInfo() {
 		assert($this->userWantsToLogin());
 
-		if (!isset($_POST[self::$username]) || empty($_POST[self::$username])) {
+		if (!isset($_POST[self::$usernamePOST]) || empty($_POST[self::$usernamePOST])) {
 			$this->message = "Användarnamn saknas";
 			throw new \Exception("Användarnamn saknas");
-		} else if (!isset($_POST[self::$password]) || empty($_POST[self::$password])) {
-			$this->user->setUsername($this->sanitize($_POST[self::$username]));
+		} else if (!isset($_POST[self::$passwordPOST]) || empty($_POST[self::$passwordPOST])) {
+			$this->userModel->setUsername($this->sanitize($_POST[self::$usernamePOST]));
 			$this->message = "Lösenord saknas";
 			throw new \Exception("Lösenord saknas");
 		}
 
-		$this->userInfo["username"] = $this->sanitize($_POST[self::$username]);
-		$this->userInfo["password"] = $this->sanitize($_POST[self::$password]);
-
-		return $this->userInfo;
+		$this->userModel->setUsername($this->sanitize($_POST[self::$usernamePOST]));
+		$this->userModel->setPassword($this->sanitize($_POST[self::$passwordPOST]));
 	}
 
 	/**
@@ -90,7 +94,7 @@ class Login {
 
 		$html =  '
 			<h2>Ej inloggad</h2>
-			<form method="post" action="?login">
+			<form method="post" action="?' . self::$loginGET . '">
 				<fieldset>
 					<legend>Login - Skriv in användarnamn och lösenord</legend>';
 
@@ -99,10 +103,15 @@ class Login {
 		}
 
 		$html .= '
-					<label for="' . self::$username . '">Namn: </label>
-					<input type="text" placeholder="Användarnamn" value="' . $this->user->getUsername() .'" name="' . self::$username . '" id="' . self::$username . '" autofocus>
-					<label for="' . self::$password . '">Lösenord: </label>
-					<input type="password" placeholder="Lösenord" name="' . self::$password . '" id="' . self::$password . '">
+					<label for="' . self::$usernamePOST . '">Namn: </label>
+					<input type="text" placeholder="Användarnamn" value="' . 
+					$this->userModel->getUsername() .'" name="' . self::$usernamePOST . 
+					'" id="' . self::$usernamePOST . '" autofocus>
+
+					<label for="' . self::$passwordPOST . '">Lösenord: </label>
+					<input type="password" placeholder="Lösenord" name="' . 
+					self::$passwordPOST . '" id="' . self::$passwordPOST . '">
+
 					<button type="submit">Logga in</button>
 				</fieldset>
 			</form>';
@@ -119,14 +128,13 @@ class Login {
 			$this->message = $message;
 		}
 
-		$html = '
-				<h2> ' . $this->user->getUsername() . ' är inloggad</h2>';
+		$html = '<h2> ' . $this->userModel->getUsername() . ' är inloggad</h2>';
 
 		if ($this->message) {
 			$html .= "<p>$this->message</p>";
 		}
 
-		$html .= "<a href='?logout'>Logga ut</a>";
+		$html .= '<a href="?' . self::$logoutGET . '">Logga ut</a>';
 
 		return $html;
 	}

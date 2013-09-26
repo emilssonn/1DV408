@@ -1,11 +1,15 @@
 <?php
 
 class LikeView {
+	// @error, consts are global
+	// @error, comment, no type
 	const USER_DID_LIKE = 0;
 	const NO_MESSAGE = 1;
+	
 	/**
 	 * String location in $_GET
 	 */
+	// @error, bad name
 	private $m_getLikeLocation = "ILike";
 	
 	
@@ -17,6 +21,7 @@ class LikeView {
 		return isset($_GET[$this->m_getLikeLocation]);
 	}
 	
+	// @error, $likes should have "int" comment
 	/**
 	 * Generate HTML output 
 	 * @param $likes, Number of likes
@@ -24,6 +29,7 @@ class LikeView {
 	 * @param $message, CONST  NO_MESSAGE | USER_DID_LIKE
 	 * @return String,  HTML
 	 */
+	// @error, name getOutput
 	public function doOutput($likes, $userHasLiked, $message) {
 		
 		if ($userHasLiked == false) {
@@ -37,7 +43,7 @@ class LikeView {
 		} else {
 			$messageHTML = "<h3>You pressed like, thank you! </h3>";
 		}
-		
+		// @error, language
 		return "
 				<div>
 					<h1>LikeView</h1>

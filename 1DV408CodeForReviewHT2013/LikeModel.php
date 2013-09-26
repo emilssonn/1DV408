@@ -2,11 +2,13 @@
 
 class LikeModel {
 		
+	// @error, comment, no type
 	/**
 	 * Location in session where we store if a user has liked something or not.
 	 */
 	private $m_sessionLocation = "LikeModel::HasLiked";
 	
+	// @error, comment, no type
 	/**
 	 * Filename for the file where we store the total number of likes
 	 * shared by all the clients
@@ -25,6 +27,7 @@ class LikeModel {
 		$row = fgets($fp);
 		
 		//convert the string into number
+		// @error, bad name
 		$ret = $row + 0;
 		
 		//close the file to free resources
@@ -53,6 +56,7 @@ class LikeModel {
 			return false;
 		}
 		//collect the old value
+		// @error, bad name
 		$likes = $this->getNumberOfLikes();
 		
 		$likes++;
@@ -75,17 +79,24 @@ class LikeModel {
 	/**
 	 * Reset the Session from the test so we know.
 	 */
+	// @error, name resetSession
 	private function reset() {
 		if($this->userHasLiked())
 			unset($_SESSION[$this->m_sessionLocation]);
 	}
 	
+	// @error, public - private
+	// @error, long method
+	// @error, name testApp
+	// @error, should throw exceptions 
+	// @error, no return value comment
 	/**
 	 * Chained test 
 	 */
 	public static function test() {
 		
 		//system under test
+		// @error, bad name
 		$sut = new LikeModel();
 		
 		//Put ourself in known state (do not like)

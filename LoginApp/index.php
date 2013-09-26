@@ -4,17 +4,17 @@ require_once("./src/view/HTMLPage.php");
 require_once("./src/view/Login.php");
 require_once("./src/controller/Login.php");
 require_once("./src/model/User.php");
-require_once("./src/model/UserLogin.php");
+require_once("./src/model/SessionAuth.php");
 
 session_start();
 
-$userLogin = new \model\UserLogin();
+$sessionAuthModel = new \model\SessionAuth();
 
-$user = $userLogin->load();
+$user = $sessionAuthModel->load();
 
-$loginController = new \Controller\Login($user, $userLogin);
+$loginController = new \Controller\Login($user, $sessionAuthModel);
 
-$html = $loginController->checkUser();
+$html = $loginController->userAction();
 $title = $loginController->getPageTitle();
 
 $pageView = new \view\HTMLPage();

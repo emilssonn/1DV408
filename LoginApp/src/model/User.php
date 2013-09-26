@@ -44,22 +44,39 @@ class User {
 	}
 
 	/**
-	 * @param String $username, not required
-	 * @param String $password, not required
+	 * @return String. returns the password
 	 */
-	public function __construct($username = null, $password = null) {
-		$this->username = $username;
+	public function getPassword() {
+		return $this->password;
+	}
+
+	/**
+	 * @param String $password, sets the password
+	 */
+	public function setPassword($password) {
 		$this->password = $password;
 	}
 
 	/**
-	 * @return bool, returns true if successfull
+	 * @param String $username, not required
+	 * @param String $password, not required
 	 */
-	public function login($username, $password) {
-		$this->username = $username;
-		$this->password = $password;
+	public function __construct($username = null, $password = null) {
+		$this->setUsername($username);
+		$this->setPassword($password);
+	}
 
-		if ($this->username == self::$correctUsername && $this->password == self::$correctPassword) {
+	/**
+	 * @param String $username
+	 * @param String $password
+	 * @return bool, returns true if successfull
+	 * @throws Exception If username or password is not correct
+	 */
+	public function login() {
+
+		if ($this->username == self::$correctUsername && 
+			$this->password == self::$correctPassword) {
+			
 			$this->isUserLoggedIn = true;
 			return true;
 		} 
@@ -73,9 +90,12 @@ class User {
 		return $this->isUserLoggedIn;
 	}
 
+	/**
+	 * Resets the values
+	 */
 	public function logOut() {
-		$this->username = "";
-		$this->password = "";
+		$this->setUsername("");
+		$this->setPassword("");
 		$this->isUserLoggedIn = false;
 	}
 

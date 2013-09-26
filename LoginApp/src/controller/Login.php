@@ -15,15 +15,18 @@ class Login {
 	/**
 	 * @var \Model\User
 	 */
-	private $user;
+	private $userModel;
 
 	/**
-	 * @var \Model\UserLogin
+	 * @var \Model\SessionAuth
 	 */
-	private $userLogin;
+	private $sessionAuthModel;
 
+	/**
+	 * @return String page title
+	 */
 	public function getPageTitle() {
-		if ($this->user->isUserLoggedIn()) {
+		if ($this->userModel->isUserLoggedIn()) {
 			return "Laboration: Inloggad";
 		} else {
 			return "Laboration: Ej inloggad";
@@ -31,46 +34,68 @@ class Login {
 	}
 
 	/**
-	 * @param \Model\User 		$user      
-	 * @param \Model\UserLogin 	$userLogin 
+	 * @param \Model\User 			$userModel      
+	 * @param \Model\SessionAuth 	sessionAuthModel
 	 */
-	public function __construct(\Model\User $user, \Model\UserLogin $userLogin) {
-		$this->user = $user;
-		$this->loginView = new \view\Login($this->user);	
-		$this->userLogin = $userLogin;
+	public function __construct(\Model\User $userModel, 
+								\Model\SessionAuth $sessionAuthModel) {
+		$this->userModel = $userModel;
+		$this->loginView = new \view\Login($this->userModel);	
+		$this->sessionAuthModel = $sessionAuthModel;
 	}
 
 	/**
 	 * Checks what action the user has taken.
 	 * @return string, returns a string of HTML
 	 */
-	public function checkUser() {
-		if($this->user->isUserLoggedIn() && !$this->loginView->userWantsToLogout() ) {		
+	public function userAction() {
+		if($this->userModel->isUserLoggedIn() && !$this->loginView->userWantsToLogout() ) {		
 			//Logged in
 			return $this->loginView->getLoggedInHTML();
-		} else if ($this->loginView->userWantsToLogin() && !$this->user->isUserLoggedIn()) {
+		} else if ($this->loginView->userWantsToLogin() && !$this->userModel->isUserLoggedIn()) {
 			//Wants to log in
-			try {
-				$userInfo = $this->loginView->getLoginInfo();
-				try {
-					$this->user->login($userInfo["username"], $userInfo["password"]);
-					$this->userLogin->login($this->user);
-					return $this->loginView->getLoggedInHTML("Inloggningen lyckades");
-				} catch(\Exception $e) {	
-					return $this->loginView->getLoginForm($e->getMessage());
-				}
-
-			} catch(\Exception $e) {			
-				return $this->loginView->getLoginForm();
-			}
-		} else if ($this->user->isUserLoggedIn() && $this->loginView->userWantsToLogout() ) {
+			return $this->userLogin();
+		} else if ($this->userModel->isUserLoggedIn() && $this->loginView->userWantsToLogout() ) {
 			//Log out
-			$this->userLogin->logout();
-			$this->user->logOut();
-			return $this->loginView->getLoginForm("Du har nu loggat ut");
+			return $this->userLogOut();
+			
 		} else {
 			//Default page, login form
 			return $this->loginView->getLoginForm();
+		}
+	}
+
+	/**
+	 * Tries to log in the user
+	 * @return String, string of HTML
+	 */
+	private function userLogin() {
+		try {
+			$this->loginView->loginInfo();
+			try {
+				$this->userModel->login();
+				$this->sessionAuthModel->login($this->userModel);
+				return $this->loginView->getLoggedInHTML("Inloggningen lyckades");
+			} catch(\Exception $e) {	
+				return $this->loginView->getLoginForm($e->getMessage());
+			}
+
+		} catch(\Exception $e) {
+			return $this->loginView->getLoginForm();
+		}
+	}
+
+	/**
+	 * Tries to log out the user
+	 * @return String, string of HTML
+	 */
+	private function userLogOut() {
+		try {
+			$this->sessionAuthModel->logout();
+			$this->userModel->logOut();
+			return $this->loginView->getLoginForm("Du har nu loggat ut");
+		} catch(\Exception $e) {
+			return $this->loginView->getLoggedInHTML($e->getMessage());
 		}
 	}
 }
