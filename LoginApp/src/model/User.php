@@ -2,7 +2,11 @@
 
 namespace Model;
 
+require_once("./src/model/Crypt.php");
+
 class User {
+
+	private $cryptModel;
 
 	/**
 	 * @var string
@@ -12,17 +16,12 @@ class User {
 	/**
 	 * @var string
 	 */
-	private static $correctPassword = "Password";
+	private static $correctPassword = '$2a$07$SBuUNsVHQNpLFNaTfySRcewaojeUNbrf9S/umD5uJ218UL45U1iaq';//Password
 
 	/**
 	 * @var string
 	 */
 	private $username;
-
-	/**
-	 * @var string
-	 */
-	private $password;
 
 	/**
 	 * @var boolean
@@ -37,33 +36,11 @@ class User {
 	}
 
 	/**
-	 * @param String $username, sets the username
-	 */
-	public function setUsername($username) {
-		$this->username = $username;
-	}
-
-	/**
-	 * @return String. returns the password
-	 */
-	public function getPassword() {
-		return $this->password;
-	}
-
-	/**
-	 * @param String $password, sets the password
-	 */
-	public function setPassword($password) {
-		$this->password = $password;
-	}
-
-	/**
 	 * @param String $username, not required
 	 * @param String $password, not required
 	 */
-	public function __construct($username = null, $password = null) {
-		$this->setUsername($username);
-		$this->setPassword($password);
+	public function __construct() {
+		$this->cryptModel = new \Model\Crypt();
 	}
 
 	/**
@@ -72,12 +49,13 @@ class User {
 	 * @return bool, returns true if successfull
 	 * @throws Exception If username or password is not correct
 	 */
-	public function login() {
+	public function login($username, $password) {
 
-		if ($this->username == self::$correctUsername && 
-			$this->password == self::$correctPassword) {
+		if ($username == self::$correctUsername && 
+			crypt($password, self::$correctPassword) == self::$correctPassword) {
 			
 			$this->isUserLoggedIn = true;
+			$this->username = $username;
 			return true;
 		} 
 		throw new \Exception("Felaktigt användarnamn och/eller lösenord");
@@ -94,9 +72,24 @@ class User {
 	 * Resets the values
 	 */
 	public function logOut() {
-		$this->setUsername("");
-		$this->setPassword("");
+		$this->username = "";
 		$this->isUserLoggedIn = false;
+	}
+
+	public function loginByCookies(\Model\UserDAL $userDAL, $username, $tempID, $ip) {
+		$this->userDAL = $userDAL;
+		try {
+			$cookieExpire = $this->userDAL->findTempUser($username, $tempID, $ip);
+			if ($cookieExpire < time()) {
+				throw new \Exception();
+			}
+			$this->isUserLoggedIn = true;
+			$this->username = $username;
+			return true;
+		} catch(\Exception $e) {
+			throw new \Exception();
+		}
+		
 	}
 
 }

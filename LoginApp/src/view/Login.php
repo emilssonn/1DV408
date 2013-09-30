@@ -19,6 +19,12 @@ class Login {
 	private static $passwordPOST = "View::Login::Password";
 
 	/**
+	 * Name in HTML form and location in $_POST
+	 * @var string
+	 */
+	private static $cookieLoginPOST = "View::Login::CookieLogin";
+
+	/**
 	 * Name in URL for login
 	 * @var string
 	 */
@@ -41,11 +47,9 @@ class Login {
 	private $message = null;
 
 	/**
-	 * @param \Model\User $user
+	 * @var string
 	 */
-	public function __construct(\Model\User $user) {
-		$this->userModel = $user;
-	}
+	private $username;
 
 	/**
 	 * true if user wants to login
@@ -64,23 +68,99 @@ class Login {
 	}
 
 	/**
-	 * sets the username and password on the model
-	 * @throws Exception if input does not exist
+	 * [getPassword description]
+	 * @return string
 	 */
-	public function loginInfo() {
+	public function getPassword() {
 		assert($this->userWantsToLogin());
 
-		if (!isset($_POST[self::$usernamePOST]) || empty($_POST[self::$usernamePOST])) {
-			$this->message = "Användarnamn saknas";
-			throw new \Exception("Användarnamn saknas");
-		} else if (!isset($_POST[self::$passwordPOST]) || empty($_POST[self::$passwordPOST])) {
-			$this->userModel->setUsername($this->sanitize($_POST[self::$usernamePOST]));
+		if (!isset($_POST[self::$passwordPOST]) || empty($_POST[self::$passwordPOST])) {
 			$this->message = "Lösenord saknas";
 			throw new \Exception("Lösenord saknas");
 		}
 
-		$this->userModel->setUsername($this->sanitize($_POST[self::$usernamePOST]));
-		$this->userModel->setPassword($this->sanitize($_POST[self::$passwordPOST]));
+		return $this->sanitize($_POST[self::$passwordPOST]);
+	}
+
+	/**
+	 * [getUsername description]
+	 * @return stirng
+	 */
+	public function getUsername() {
+		assert($this->userWantsToLogin());
+
+		if (!isset($_POST[self::$usernamePOST]) || empty($_POST[self::$usernamePOST])) {
+			$this->username = $this->sanitize($_POST[self::$usernamePOST]);
+			$this->message = "Användarnamn saknas";
+			throw new \Exception("Användarnamn saknas");
+		}
+
+		$this->username = $this->sanitize($_POST[self::$usernamePOST]);
+
+		return $this->sanitize($_POST[self::$usernamePOST]);
+	}
+
+	/**
+	 * [cookieLogin description]
+	 * @return bool [description]
+	 */
+	public function cookieLogin() {
+		return isset($_COOKIE[self::$usernamePOST]) && isset($_COOKIE[self::$passwordPOST]);
+	}
+
+	/**
+	 * [keepMeLoggedIn description]
+	 * @return bool [description]
+	 */
+	public function keepMeLoggedIn() {
+		return isset($_POST[self::$cookieLoginPOST]);
+	}
+
+	/**
+	 * [setCookies description]
+	 * @param string $username 
+	 * @param string $randString [description]
+	 * @param string $time     [description]
+	 */
+	public function setCookies($username, $randString, $time) {
+		setcookie(self::$usernamePOST, $username, $time);
+		setcookie(self::$passwordPOST, $randString, $time);
+	}
+
+	/**
+	 * @return [type] [description]
+	 */
+	public function deleteCookies() {
+		setcookie(self::$usernamePOST, "", time() - 3600);
+		setcookie(self::$passwordPOST, "", time() - 3600);
+	}
+
+	/**
+	 * [getIPAdress description]
+	 * @return string [description]
+	 */
+	public function getIPAdress() {
+		return $_SERVER['REMOTE_ADDR'];
+	}
+
+	/**
+	 * [getPasswordCookie description]
+	 * @return string [description]
+	 */
+	public function getPasswordCookie() {
+		assert($this->cookieLogin());
+
+		return $this->sanitize($_COOKIE[self::$passwordPOST]);
+	}
+
+	/**
+	 * [getUsernameCookie description]
+	 * @return string [description]
+	 */
+	public function getUsernameCookie() {
+		assert($this->cookieLogin());
+
+		return $this->sanitize($_COOKIE[self::$usernamePOST]);
 	}
 
 	/**
@@ -92,43 +172,57 @@ class Login {
 			$this->message = $message;
 		}
 
-		$html =  '
-			<h2>Ej inloggad</h2>
-			<form method="post" action="?' . self::$loginGET . '">
-				<fieldset>
-					<legend>Login - Skriv in användarnamn och lösenord</legend>';
+		$html = $this->getLoginFormHead();
 
 		if ($this->message) {
 			$html .= "<p>$this->message</p>";
 		}
 
-		$html .= '
+		$html .= $this->getLoginFormBody();
+
+		return $html;
+	}
+
+	private function getLoginFormHead() {
+		return '
+			<h2>Ej inloggad</h2>
+			<form method="post" action="?' . self::$loginGET . '">
+				<fieldset>
+					<legend>Login - Skriv in användarnamn och lösenord</legend>';
+	}
+
+	//@TODO kolla om check rutan ska vara i fylld
+	private function getLoginFormBody() {
+		return '
 					<label for="' . self::$usernamePOST . '">Namn: </label>
 					<input type="text" placeholder="Användarnamn" value="' . 
-					$this->userModel->getUsername() .'" name="' . self::$usernamePOST . 
+					$this->username .'" name="' . self::$usernamePOST . 
 					'" id="' . self::$usernamePOST . '" autofocus>
 
 					<label for="' . self::$passwordPOST . '">Lösenord: </label>
 					<input type="password" placeholder="Lösenord" name="' . 
 					self::$passwordPOST . '" id="' . self::$passwordPOST . '">
 
+					<label for="' . self::$cookieLoginPOST . '" >Håll mig inloggad  :</label>
+					<input type="checkbox" name="' . self::$cookieLoginPOST . '" id="' . 
+					self::$cookieLoginPOST . '" />
+
 					<button type="submit">Logga in</button>
 				</fieldset>
 			</form>';
-
-		return $html;
 	}
 
 	/**
+	 * @param \Model\User $user
 	 * @param  String $message
 	 * @return HTML, returns string of HTML 
 	 */
-	public function getLoggedInHTML($message = null) {
+	public function getLoggedInHTML(\Model\User $user, $message = null) {
 		if ($message) {
 			$this->message = $message;
 		}
 
-		$html = '<h2> ' . $this->userModel->getUsername() . ' är inloggad</h2>';
+		$html = '<h2> ' . $user->getUsername() . ' är inloggad</h2>';
 
 		if ($this->message) {
 			$html .= "<p>$this->message</p>";

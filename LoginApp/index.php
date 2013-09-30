@@ -1,18 +1,14 @@
 <?php
 
 require_once("./src/view/HTMLPage.php");
-require_once("./src/view/Login.php");
 require_once("./src/controller/Login.php");
-require_once("./src/model/User.php");
-require_once("./src/model/SessionAuth.php");
+
 
 session_start();
 
-$sessionAuthModel = new \model\SessionAuth();
+$mysqli = new \mysqli("localhost", "root", "", "1dv408-lab");
 
-$user = $sessionAuthModel->load();
-
-$loginController = new \Controller\Login($user, $sessionAuthModel);
+$loginController = new \Controller\Login($mysqli);
 
 $html = $loginController->userAction();
 $title = $loginController->getPageTitle();

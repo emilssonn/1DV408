@@ -18,12 +18,13 @@ class SessionAuth {
 
 	/**
 	 * @return \Model\User
+	 * @throws \Exception If no session is found
 	 */
 	public function load() {
 		if (isset($_SESSION[self::$sessionLocation])) {
 			return $_SESSION[self::$sessionLocation];
 		}
-		return new \Model\User();
+		throw new \Exception();
 	}
 
 	/**
