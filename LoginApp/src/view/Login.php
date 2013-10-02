@@ -68,31 +68,79 @@ class Login {
 	}
 
 	/**
-	 * [getPassword description]
+	 * true if cookies exists to login
+	 * @return bool
+	 */
+	public function cookieLogin() {
+		return isset($_COOKIE[self::$usernamePOST]) && isset($_COOKIE[self::$passwordPOST]);
+	}
+
+	/**
+	 * true if user wants to stay logged in past this session
+	 * @return bool
+	 */
+	public function keepMeLoggedIn() {
+		return isset($_POST[self::$cookieLoginPOST]);
+	}
+
+	/**
+	 * Set succes/error message
+	 * @param CONST $state
+	 */
+	public function setMessage($state) {
+		switch ($state) {
+			case \Model\User::successLogin:
+				$this->message = "Inloggningen lyckades";
+				break;
+
+			case \Model\User::successCookieLogin:
+				$this->message = "Inloggningen lyckades via cookies";
+				break;
+			
+			case \Model\User::failedCookieLogin:
+				$this->message = "Felaktig information i cookie";
+				break;
+
+			case \Model\User::wrongUsernamePassword:
+				$this->message = "Felaktigt användarnamn och/eller lösenord";
+				break;
+
+			case \Model\User::successLogout:
+				$this->message = "Du har nu loggat ut";
+				break;
+
+			case \Model\User::successLoginKeep:
+				$this->message = "Inloggningen lyckades och vi kommer ihåg dig nästa gång";
+				break;
+		}
+	}
+
+	/**
 	 * @return string
+	 * @throws Exception If no password
 	 */
 	public function getPassword() {
 		assert($this->userWantsToLogin());
 
 		if (!isset($_POST[self::$passwordPOST]) || empty($_POST[self::$passwordPOST])) {
+			$this->username = $this->sanitize($_POST[self::$usernamePOST]);
 			$this->message = "Lösenord saknas";
-			throw new \Exception("Lösenord saknas");
+			throw new \Exception();
 		}
 
 		return $this->sanitize($_POST[self::$passwordPOST]);
 	}
 
 	/**
-	 * [getUsername description]
 	 * @return stirng
+	 * @throws Exception If no username
 	 */
 	public function getUsername() {
 		assert($this->userWantsToLogin());
 
 		if (!isset($_POST[self::$usernamePOST]) || empty($_POST[self::$usernamePOST])) {
-			$this->username = $this->sanitize($_POST[self::$usernamePOST]);
 			$this->message = "Användarnamn saknas";
-			throw new \Exception("Användarnamn saknas");
+			throw new \Exception();
 		}
 
 		$this->username = $this->sanitize($_POST[self::$usernamePOST]);
@@ -101,34 +149,17 @@ class Login {
 	}
 
 	/**
-	 * [cookieLogin description]
-	 * @return bool [description]
-	 */
-	public function cookieLogin() {
-		return isset($_COOKIE[self::$usernamePOST]) && isset($_COOKIE[self::$passwordPOST]);
-	}
-
-	/**
-	 * [keepMeLoggedIn description]
-	 * @return bool [description]
-	 */
-	public function keepMeLoggedIn() {
-		return isset($_POST[self::$cookieLoginPOST]);
-	}
-
-	/**
-	 * [setCookies description]
 	 * @param string $username 
-	 * @param string $randString [description]
-	 * @param string $time     [description]
+	 * @param string $tempId
+	 * @param int $time 
 	 */
-	public function setCookies($username, $randString, $time) {
-		setcookie(self::$usernamePOST, $username, $time);
-		setcookie(self::$passwordPOST, $randString, $time);
+	public function setCookies($username, $tempId, $time) {
+		setcookie(self::$usernamePOST, $username, $time, "", "", false , true);
+		setcookie(self::$passwordPOST, $tempId, $time, "", "", false , true);
 	}
 
 	/**
-	 * @return [type] [description]
+	 * Delete the cookies
 	 */
 	public function deleteCookies() {
 		setcookie(self::$usernamePOST, "", time() - 3600);
@@ -136,26 +167,16 @@ class Login {
 	}
 
 	/**
-	 * [getIPAdress description]
-	 * @return string [description]
+	 * @return string
 	 */
-	public function getIPAdress() {
-		return $_SERVER['REMOTE_ADDR'];
-	}
-
-	/**
-	 * [getPasswordCookie description]
-	 * @return string [description]
-	 */
-	public function getPasswordCookie() {
+	public function getTokenCookie() {
 		assert($this->cookieLogin());
 
 		return $this->sanitize($_COOKIE[self::$passwordPOST]);
 	}
 
 	/**
-	 * [getUsernameCookie description]
-	 * @return string [description]
+	 * @return string
 	 */
 	public function getUsernameCookie() {
 		assert($this->cookieLogin());
@@ -164,14 +185,39 @@ class Login {
 	}
 
 	/**
-	 * @param  String $message
-	 * @return HTML, returns string of HTML
+	 * @return string
 	 */
-	public function getLoginForm($message = null) {
-		if ($message) {
-			$this->message = $message;
+	public function getIPAdress() {
+		return $_SERVER['REMOTE_ADDR'];
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getUserAgent() {
+		return $_SERVER['HTTP_USER_AGENT'];
+	}
+
+	/**
+	 * @param \Model\User $user
+	 * @return HTML, returns string of HTML 
+	 */
+	public function getLoggedInHTML(\Model\User $user) {
+		$html = '<h2> ' . $user->getUsername() . ' är inloggad</h2>';
+
+		if ($this->message) {
+			$html .= "<p>$this->message</p>";
 		}
 
+		$html .= '<a href="?' . self::$logoutGET . '">Logga ut</a>';
+
+		return $html;
+	}
+
+	/**
+	 * @return HTML, returns string of HTML
+	 */
+	public function getLoginForm() {
 		$html = $this->getLoginFormHead();
 
 		if ($this->message) {
@@ -183,6 +229,9 @@ class Login {
 		return $html;
 	}
 
+	/**
+	 * @return string HTML form head
+	 */
 	private function getLoginFormHead() {
 		return '
 			<h2>Ej inloggad</h2>
@@ -191,7 +240,9 @@ class Login {
 					<legend>Login - Skriv in användarnamn och lösenord</legend>';
 	}
 
-	//@TODO kolla om check rutan ska vara i fylld
+	/**
+	 * @return string HTML form body
+	 */
 	private function getLoginFormBody() {
 		return '
 					<label for="' . self::$usernamePOST . '">Namn: </label>
@@ -210,27 +261,6 @@ class Login {
 					<button type="submit">Logga in</button>
 				</fieldset>
 			</form>';
-	}
-
-	/**
-	 * @param \Model\User $user
-	 * @param  String $message
-	 * @return HTML, returns string of HTML 
-	 */
-	public function getLoggedInHTML(\Model\User $user, $message = null) {
-		if ($message) {
-			$this->message = $message;
-		}
-
-		$html = '<h2> ' . $user->getUsername() . ' är inloggad</h2>';
-
-		if ($this->message) {
-			$html .= "<p>$this->message</p>";
-		}
-
-		$html .= '<a href="?' . self::$logoutGET . '">Logga ut</a>';
-
-		return $html;
 	}
 
 	/**

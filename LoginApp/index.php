@@ -2,13 +2,16 @@
 
 require_once("./src/view/HTMLPage.php");
 require_once("./src/controller/Login.php");
+require_once("./src/model/UserDAL.php");
 
-
+session_set_cookie_params(0, "/1DV408/LoginApp", "", false, true);
 session_start();
 
 $mysqli = new \mysqli("localhost", "root", "", "1dv408-lab");
 
-$loginController = new \Controller\Login($mysqli);
+$userDAL = new \Model\UserDAL($mysqli);
+
+$loginController = new \Controller\Login($userDAL);
 
 $html = $loginController->userAction();
 $title = $loginController->getPageTitle();

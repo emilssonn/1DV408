@@ -22,10 +22,11 @@ class UserDAL {
 	}
 
 	/**
-	 * @param  string $username   [description]
-	 * @param  string $tempID     [description]
-	 * @param  string $cookieDate [description]
-	 * @param  string $ip         [description]
+	 * @param  string $username   
+	 * @param  string $tempID    
+	 * @param  int $cookieDate
+	 * @param  string $ip
+	 * @throws Exeption If sql fails         
 	 */
 	public function insertTempUser($username, $tempID, $cookieDate, $ip) {
 		$sql = "INSERT INTO " . self::$tempUserTable . "
@@ -37,30 +38,28 @@ class UserDAL {
 				)
 				VALUES(?, ?, ? ,?)";
 
-		//http://www.php.net/manual/en/mysqli-stmt.prepare.php
 		$statement = $this->mysqli->prepare($sql);
 		if ($statement === FALSE) {
 			throw new \Exception("prepare of $sql failed " . $this->mysqli->error);
 		}
 
-		//http://www.php.net/manual/en/mysqli-stmt.bind-param.php
 		if ($statement->bind_param("ssss", $username, $tempID, $ip, $cookieDate) === FALSE) {
 				throw new \Exception("bind_param of $sql failed " . $statement->error);
 		}
 
-		//http://www.php.net/manual/en/mysqli-stmt.execute.php
 		if ($statement->execute() === FALSE) {
 			throw new \Exception("execute of $sql failed " . $statement->error);
 		}
 	}
 
 	/**
-	 * @param  string $username [description]
-	 * @param  string $tempID   [description]
-	 * @param  string $ip       [description]
-	 * @return string           [description]
+	 * @param  string $username
+	 * @param  string $tempID  
+	 * @param  string $ip
+	 * @throws Exception If sql fails
+	 * @return int, cookie expire date          
 	 */
-	public function findTempUser($username, $tempID, $ip) {
+	public function getCookieDate($username, $tempID, $ip) {
 		$sql = 'SELECT
 				cookie_expire FROM ' . self::$tempUserTable . 
 				' WHERE username = "' . $username . 
@@ -82,6 +81,5 @@ class UserDAL {
 		$object = $result->fetch_array(MYSQLI_ASSOC);
 
 		return $object["cookie_expire"];
-		
 	}
 }

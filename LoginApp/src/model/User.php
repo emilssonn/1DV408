@@ -6,17 +6,16 @@ require_once("./src/model/Crypt.php");
 
 class User {
 
-	private $cryptModel;
-
 	/**
 	 * @var string
 	 */
 	private static $correctUsername = "Admin";
 	
 	/**
+	 * Decrypted value: Password
 	 * @var string
 	 */
-	private static $correctPassword = '$2a$07$SBuUNsVHQNpLFNaTfySRcewaojeUNbrf9S/umD5uJ218UL45U1iaq';//Password
+	private static $correctPassword = '$2a$07$SBuUNsVHQNpLFNaTfySRcewaojeUNbrf9S/umD5uJ218UL45U1iaq';
 
 	/**
 	 * @var string
@@ -24,22 +23,66 @@ class User {
 	private $username;
 
 	/**
-	 * @var boolean
+	 * @var int
 	 */
-	private $isUserLoggedIn = false;
+	private $id;
 
 	/**
-	 * @return String, return the username
+	 * @var string
+	 */
+	private $ip;
+
+	/**
+	 * @var string
+	 */
+	private $userAgent;
+
+	/**
+	 * @var \Model\Crypt
+	 */
+	private $cryptModel;
+
+	/**
+	 * @var CONST
+	 */
+	private $state;
+
+	/**
+	 * Login result
+	 */
+	CONST successLogin = "0";
+
+	CONST successCookieLogin = "1";
+
+	CONST failedCookieLogin = "2";
+
+	CONST wrongUsernamePassword = "3";
+
+	CONST successLogout = "4";
+
+	CONST successLoginKeep = "5";
+
+	/**
+	 * @return String, username
 	 */
 	public function getUsername() {
 		return $this->username;
 	}
 
 	/**
-	 * @param String $username, not required
-	 * @param String $password, not required
+	 * @return CONST action result
 	 */
-	public function __construct() {
+	public function getState() {
+		return $this->state;
+	}
+
+	/**
+	 * @param string $ip       
+	 * @param string $userAgent
+	 */
+	public function __construct($ip, $userAgent) {
+		$this->ip = $ip;
+		$this->userAgent = $userAgent;
 		$this->cryptModel = new \Model\Crypt();
 	}
 
@@ -54,18 +97,32 @@ class User {
 		if ($username == self::$correctUsername && 
 			crypt($password, self::$correctPassword) == self::$correctPassword) {
 			
-			$this->isUserLoggedIn = true;
+			$this->id = 1;
 			$this->username = $username;
+			$this->state = self::successLogin;
 			return true;
-		} 
-		throw new \Exception("Felaktigt användarnamn och/eller lösenord");
+		}
+		$this->state = self::wrongUsernamePassword; 
+		throw new \Exception();
 	}
 
 	/**
-	 * @return boolean, returns true if logged in
+	 * @return bool, returns true if logged in
 	 */
 	public function isUserLoggedIn() {
-		return $this->isUserLoggedIn;
+		return $this->id ? true : false;
+	}
+
+	/**
+	 * @param  \Model\UserDAL $userDAL   
+	 * @param  string       $username   
+	 * @param  string       $randString 
+	 * @param  int       	$time                          
+	 */
+	public function keepMeLoggedIn(\Model\UserDAL $userDAL, $username, $tempId, $time) {
+		$this->userDAL = $userDAL;
+		$this->userDAL->insertTempUser($username, $tempId, $time, $this->ip);
+		$this->state = self::successLoginKeep;
 	}
 
 	/**
@@ -73,23 +130,36 @@ class User {
 	 */
 	public function logOut() {
 		$this->username = "";
-		$this->isUserLoggedIn = false;
+		$this->id = null;
+		$this->state = self::successLogout;
 	}
 
-	public function loginByCookies(\Model\UserDAL $userDAL, $username, $tempID, $ip) {
+	/**
+	 * @param  \Model\UserDAL $userDAL 
+	 * @param  string      $username
+	 * @param  string      $tempId
+	 * @throws Exception If cookie has expired                 
+	 */
+	public function loginByCookies(\Model\UserDAL $userDAL, $username, $tempId) {
 		$this->userDAL = $userDAL;
-		try {
-			$cookieExpire = $this->userDAL->findTempUser($username, $tempID, $ip);
-			if ($cookieExpire < time()) {
-				throw new \Exception();
-			}
-			$this->isUserLoggedIn = true;
-			$this->username = $username;
-			return true;
-		} catch(\Exception $e) {
+
+		$cookieExpire = $this->userDAL->getCookieDate($username, $tempId, $this->ip);
+		if ($cookieExpire < time()) {
+			$this->state = self::failedCookieLogin;
 			throw new \Exception();
 		}
-		
+		$this->id = 1;
+		$this->username = $username;
+		$this->state = self::successCookieLogin;
+	}
+
+	/**
+	 * @param  string $ip        
+	 * @param  string $userAgent
+	 * @return bool       
+	 */
+	public function compareSession($ip, $userAgent) {
+		return $ip == $this->ip && $userAgent == $this->userAgent;
 	}
 
 }

@@ -18,7 +18,7 @@ class SessionAuth {
 
 	/**
 	 * @return \Model\User
-	 * @throws \Exception If no session is found
+	 * @throws \Exception If no user in session is found
 	 */
 	public function load() {
 		if (isset($_SESSION[self::$sessionLocation])) {
@@ -36,7 +36,7 @@ class SessionAuth {
 			unset($_SESSION[self::$sessionLocation]);
 			return true;
 		} catch (\Exception $e) {
-			throw new \Exception("Utloggningen misslyckades");
+			throw new \Exception();
 		}
 	}
 
