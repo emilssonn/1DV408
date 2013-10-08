@@ -1,6 +1,6 @@
 <?php
 
-namespace View;
+namespace view;
 
 require_once("./src/view/Time.php");
 

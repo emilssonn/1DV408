@@ -1,6 +1,6 @@
 <?php
 
-namespace Model;
+namespace model;
 
 class UserDAL {
 
@@ -43,7 +43,7 @@ class UserDAL {
 			throw new \Exception("prepare of $sql failed " . $this->mysqli->error);
 		}
 
-		if ($statement->bind_param("ssss", $username, $tempID, $ip, $cookieDate) === FALSE) {
+		if ($statement->bind_param("sssi", $username, $tempID, $ip, $cookieDate) === FALSE) {
 				throw new \Exception("bind_param of $sql failed " . $statement->error);
 		}
 

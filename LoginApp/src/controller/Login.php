@@ -1,10 +1,9 @@
 <?php
 
-namespace Controller;
+namespace controller;
 
 require_once("./src/view/Login.php");
 require_once("./src/model/User.php");
-require_once("./src/model/Crypt.php");
 require_once("./src/model/SessionAuth.php");
 
 class Login {
@@ -15,24 +14,19 @@ class Login {
 	private $loginView;
 
 	/**
-	 * @var \Model\User
+	 * @var \model\User
 	 */
 	private $userModel;
 
 	/**
-	 * @var \Model\SessionAuth
+	 * @var \model\SessionAuth
 	 */
 	private $sessionAuthModel;
 
 	/**
-	 * @var \Model\UserDAL
+	 * @var \model\UserDAL
 	 */
 	private $userDAL;
-
-	/**
-	 * @var \Model\Crypt
-	 */
-	private $crypt;
 
 	/**
 	 * @return String page title
@@ -46,20 +40,20 @@ class Login {
 	}
 
 	/**
-	 * @param \Model\UserDAL $userDAL
+	 * @param \model\UserDAL $userDAL
 	 */
-	public function __construct(\Model\UserDAL $userDAL) {
-		$this->sessionAuthModel = new \model\SessionAuth();
+	public function __construct(\model\UserDAL $userDAL) {
 		$this->userDAL = $userDAL;
+		$this->sessionAuthModel = new \model\SessionAuth();
+			
 		$this->loginView = new \view\Login();	
-		$this->crypt = new \Model\Crypt();
-
+		
 		try {
 			$this->userModel = $this->sessionAuthModel->load();
 		} catch(\Exception $e) {
 			$userIP = $this->loginView->getIPAdress();
 			$userAgent = $this->loginView->getUserAgent();
-			$this->userModel = new \Model\User($userIP, $userAgent);
+			$this->userModel = new \model\User($this->userDAL, $userIP, $userAgent);
 		}
 	}
 
@@ -68,7 +62,7 @@ class Login {
 	 * @return string, returns a string of HTML
 	 */
 	public function userAction() {
-		if($this->userModel->isUserLoggedIn() && !$this->loginView->userWantsToLogout() ) {		
+		if($this->userModel->isUserLoggedIn() && !$this->loginView->userLogout() ) {		
 			try {
 				$this->controlSession();
 				//Logged in
@@ -76,20 +70,24 @@ class Login {
 			} catch(\Exception $e) {
 				return $this->loginView->getLoginForm();
 			}	
+
 		} else if (!$this->userModel->isUserLoggedIn() && $this->loginView->cookieLogin()) {
 			//Cookie login
 			return $this->userCookieLogin();
-		} else if ($this->loginView->userWantsToLogin() && !$this->userModel->isUserLoggedIn()) {
+
+		} else if ($this->loginView->formLogin() && !$this->userModel->isUserLoggedIn()) {
 			//Wants to log in
 			return $this->userLogin();
-		} else if ($this->userModel->isUserLoggedIn() && $this->loginView->userWantsToLogout() ) {
+
+		} else if ($this->userModel->isUserLoggedIn() && $this->loginView->userLogout() ) {
 			try {
 				$this->controlSession();
 				//Log out
 				return $this->userLogOut();
 			} catch(\Exception $e) {
 				return $this->loginView->getLoginForm();
-			}		
+			}	
+				
 		} else {
 			//Default page, login form
 			return $this->loginView->getLoginForm();
@@ -103,17 +101,15 @@ class Login {
 	private function userCookieLogin() {	
 		try {
 			$username = $this->loginView->getUsernameCookie();
-			$randString = $this->loginView->getTokenCookie();
+			$token = $this->loginView->getTokenCookie();
 
-			$this->userModel->loginByCookies($this->userDAL, $username, $randString);
-			$this->sessionAuthModel->login($this->userModel);
-			$state = $this->userModel->getState();
-			$this->loginView->setMessage($state);
+			$this->userModel->loginByCookies($this->loginView, $username, $token);
+			$this->sessionAuthModel->save($this->userModel);
+
 			return $this->loginView->getLoggedInHTML($this->userModel);
 		} catch(\Exception $e) {	
 			$this->loginView->deleteCookies();
-			$state = $this->userModel->getState();
-			$this->loginView->setMessage($state);
+
 			return $this->loginView->getLoginForm();
 		}
 	}
@@ -124,28 +120,22 @@ class Login {
 	 */
 	private function userLogin() {
 		try {
-			$username = $this->loginView->getUsername();
-			$password = $this->loginView->getPassword();
+			$username = $this->loginView->getFormUsername();
+			$password = $this->loginView->getFormPassword();
 			try {
-				$this->userModel->login($username, $password);
-				$this->sessionAuthModel->login($this->userModel);
+				$this->userModel->login($this->loginView, $username, $password);
+				$this->sessionAuthModel->save($this->userModel);
 
 				if ($this->loginView->keepMeLoggedIn()) {
 					$this->keepMeLoggedIn();
 				}
 
-				$state = $this->userModel->getState();
-				$this->loginView->setMessage($state);
 				return $this->loginView->getLoggedInHTML($this->userModel);
 			} catch(\Exception $e) {
-				$state = $this->userModel->getState();
-				$this->loginView->setMessage($state);	
 				return $this->loginView->getLoginForm();
 			}
 
 		} catch(\Exception $e) {
-			$state = $this->userModel->getState();
-			$this->loginView->setMessage($state);
 			return $this->loginView->getLoginForm();
 		}
 	}
@@ -155,9 +145,9 @@ class Login {
 	 */
 	private function keepMeLoggedIn() {
 		$username = $this->userModel->getUsername();
-		$tempId = $this->crypt->crypt(time());
 		$time = time() + 60;
-		$this->userModel->keepMeLoggedIn($this->userDAL, $username, $tempId, $time);
+		$this->userModel->keepMeLoggedIn($this->loginView, $username, $time);
+		$tempId = $this->userModel->getTempId();
 		$this->loginView->setCookies($username, $tempId, $time);
 	}
 
@@ -167,11 +157,10 @@ class Login {
 	 */
 	private function userLogOut() {
 		try {
-			$this->sessionAuthModel->logout();
+			$this->sessionAuthModel->remove();
 			$this->loginView->deleteCookies();
-			$this->userModel->logOut();
-			$state = $this->userModel->getState();
-			$this->loginView->setMessage($state);
+			$this->userModel->logOut($this->loginView);
+
 			return $this->loginView->getLoginForm();
 		} catch(\Exception $e) {
 			return $this->loginView->getLoggedInHTML();
@@ -186,7 +175,7 @@ class Login {
 		$userIP = $this->loginView->getIPAdress();
 		$userAgent = $this->loginView->getUserAgent();
 		if (!$this->userModel->compareSession($userIP, $userAgent)) {
-			throw new \Exception();
+			throw new \Exception('Sessions do not match');
 		}
 	}
 }

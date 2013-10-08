@@ -1,6 +1,6 @@
 <?php
 
-namespace Model;
+namespace model;
 
 require_once("./src/model/Crypt.php");
 
@@ -18,11 +18,6 @@ class User {
 	private static $correctPassword = '$2a$07$SBuUNsVHQNpLFNaTfySRcewaojeUNbrf9S/umD5uJ218UL45U1iaq';
 
 	/**
-	 * @var string
-	 */
-	private $username;
-
-	/**
 	 * @var int
 	 */
 	private $id;
@@ -38,29 +33,16 @@ class User {
 	private $userAgent;
 
 	/**
-	 * @var \Model\Crypt
+	 * @var \model\Crypt
 	 */
 	private $cryptModel;
 
 	/**
-	 * @var CONST
+	 * @var string
 	 */
-	private $state;
+	private $username;
 
-	/**
-	 * Login result
-	 */
-	CONST successLogin = "0";
-
-	CONST successCookieLogin = "1";
-
-	CONST failedCookieLogin = "2";
-
-	CONST wrongUsernamePassword = "3";
-
-	CONST successLogout = "4";
-
-	CONST successLoginKeep = "5";
+	private $tempId;
 
 	/**
 	 * @return String, username
@@ -70,20 +52,14 @@ class User {
 	}
 
 	/**
-	 * @return CONST action result
-	 */
-	public function getState() {
-		return $this->state;
-	}
-
-	/**
 	 * @param string $ip       
 	 * @param string $userAgent
 	 */
-	public function __construct($ip, $userAgent) {
+	public function __construct(\model\UserDAL $userDAL, $ip, $userAgent) {
+		$this->userDAL = $userDAL;
 		$this->ip = $ip;
 		$this->userAgent = $userAgent;
-		$this->cryptModel = new \Model\Crypt();
+		$this->cryptModel = new \model\Crypt();
 	}
 
 	/**
@@ -92,18 +68,18 @@ class User {
 	 * @return bool, returns true if successfull
 	 * @throws Exception If username or password is not correct
 	 */
-	public function login($username, $password) {
+	public function login(\model\LoginObserver $loginObserver, $username, $password) {
 
 		if ($username == self::$correctUsername && 
 			crypt($password, self::$correctPassword) == self::$correctPassword) {
 			
 			$this->id = 1;
 			$this->username = $username;
-			$this->state = self::successLogin;
+			$loginObserver->okFormLogin();
 			return true;
 		}
-		$this->state = self::wrongUsernamePassword; 
-		throw new \Exception();
+		$loginObserver->wrongUserCredentials();
+		throw new \Exception('Wrong username or password');
 	}
 
 	/**
@@ -114,43 +90,44 @@ class User {
 	}
 
 	/**
-	 * @param  \Model\UserDAL $userDAL   
+	 * @param  \model\UserDAL $userDAL   
 	 * @param  string       $username   
 	 * @param  string       $randString 
 	 * @param  int       	$time                          
 	 */
-	public function keepMeLoggedIn(\Model\UserDAL $userDAL, $username, $tempId, $time) {
-		$this->userDAL = $userDAL;
-		$this->userDAL->insertTempUser($username, $tempId, $time, $this->ip);
-		$this->state = self::successLoginKeep;
+	public function keepMeLoggedIn(\model\LoginObserver $loginObserver, $username, $time) {
+		$this->tempId = $this->cryptModel->crypt(time());
+		$this->userDAL->insertTempUser($username, $this->tempId, $time, $this->ip);
+		$loginObserver->okKeepMeLoggedIn();
+	}
+
+	public function getTempId() {
+		return $this->tempId;
 	}
 
 	/**
 	 * Resets the values
 	 */
-	public function logOut() {
-		$this->username = "";
-		$this->id = null;
-		$this->state = self::successLogout;
+	public function logOut(\model\LoginObserver $loginObserver) {
+		$loginObserver->okLogOut();
 	}
 
 	/**
-	 * @param  \Model\UserDAL $userDAL 
+	 * @param  \model\UserDAL $userDAL 
 	 * @param  string      $username
 	 * @param  string      $tempId
 	 * @throws Exception If cookie has expired                 
 	 */
-	public function loginByCookies(\Model\UserDAL $userDAL, $username, $tempId) {
-		$this->userDAL = $userDAL;
+	public function loginByCookies(\model\LoginObserver $loginObserver, $username, $tempId) {
 
 		$cookieExpire = $this->userDAL->getCookieDate($username, $tempId, $this->ip);
 		if ($cookieExpire < time()) {
-			$this->state = self::failedCookieLogin;
-			throw new \Exception();
+			$loginObserver->failedCookieLogin();
+			throw new \Exception('Cookie expire date do not match');
 		}
 		$this->id = 1;
 		$this->username = $username;
-		$this->state = self::successCookieLogin;
+		$loginObserver->okCookieLogin();
 	}
 
 	/**

@@ -1,10 +1,11 @@
 <?php
 
-namespace View;
+namespace view;
 
 require_once("./src/model/User.php");
+require_once("./src/model/LoginObserver.php");
 
-class Login {
+class Login implements \model\LoginObserver {
 
 	/**
 	 * Name in HTML form and location in $_POST
@@ -37,7 +38,7 @@ class Login {
 	private static $logoutGET = "logout";
 
 	/**
-	 * @var \Model\User
+	 * @var \model\User
 	 */
 	private $userModel;
 
@@ -55,15 +56,15 @@ class Login {
 	 * true if user wants to login
 	 * @return bool
 	 */
-	public function userWantsToLogin() {
-		return isset($_GET[self::$loginGET]);
+	public function formLogin() {
+		return isset($_GET[self::$loginGET]) && $_SERVER['REQUEST_METHOD'] === 'POST';
 	}
 
 	/**
 	 * true if user wants to logout
 	 * @return bool
 	 */
-	public function userWantsToLogout() {
+	public function userLogout() {
 		return isset($_GET[self::$logoutGET]);
 	}
 
@@ -84,68 +85,34 @@ class Login {
 	}
 
 	/**
-	 * Set succes/error message
-	 * @param CONST $state
+	 * [getFormUsername description]
+	 * @return [type] [description]
 	 */
-	public function setMessage($state) {
-		switch ($state) {
-			case \Model\User::successLogin:
-				$this->message = "Inloggningen lyckades";
-				break;
+	public function getFormUsername() {
+		assert($this->formLogin());
 
-			case \Model\User::successCookieLogin:
-				$this->message = "Inloggningen lyckades via cookies";
-				break;
-			
-			case \Model\User::failedCookieLogin:
-				$this->message = "Felaktig information i cookie";
-				break;
-
-			case \Model\User::wrongUsernamePassword:
-				$this->message = "Felaktigt användarnamn och/eller lösenord";
-				break;
-
-			case \Model\User::successLogout:
-				$this->message = "Du har nu loggat ut";
-				break;
-
-			case \Model\User::successLoginKeep:
-				$this->message = "Inloggningen lyckades och vi kommer ihåg dig nästa gång";
-				break;
+		if (!isset($_POST[self::$usernamePOST]) || empty($_POST[self::$usernamePOST])) {
+			$this->message = "Användarnamn saknas";
+			throw new \Exception('No username entered');
+		} else {
+			return $this->sanitize($_POST[self::$usernamePOST]);
 		}
 	}
 
 	/**
-	 * @return string
-	 * @throws Exception If no password
+	 * [getFormPassword description]
+	 * @return [type] [description]
 	 */
-	public function getPassword() {
-		assert($this->userWantsToLogin());
+	public function getFormPassword() {
+		assert($this->formLogin());
 
 		if (!isset($_POST[self::$passwordPOST]) || empty($_POST[self::$passwordPOST])) {
 			$this->username = $this->sanitize($_POST[self::$usernamePOST]);
 			$this->message = "Lösenord saknas";
-			throw new \Exception();
+			throw new \Exception('No password entered');
+		} else {
+			return $this->sanitize($_POST[self::$passwordPOST]);
 		}
-
-		return $this->sanitize($_POST[self::$passwordPOST]);
-	}
-
-	/**
-	 * @return stirng
-	 * @throws Exception If no username
-	 */
-	public function getUsername() {
-		assert($this->userWantsToLogin());
-
-		if (!isset($_POST[self::$usernamePOST]) || empty($_POST[self::$usernamePOST])) {
-			$this->message = "Användarnamn saknas";
-			throw new \Exception();
-		}
-
-		$this->username = $this->sanitize($_POST[self::$usernamePOST]);
-
-		return $this->sanitize($_POST[self::$usernamePOST]);
 	}
 
 	/**
@@ -199,10 +166,10 @@ class Login {
 	}
 
 	/**
-	 * @param \Model\User $user
+	 * @param \model\User $user
 	 * @return HTML, returns string of HTML 
 	 */
-	public function getLoggedInHTML(\Model\User $user) {
+	public function getLoggedInHTML(\model\User $user) {
 		$html = '<h2> ' . $user->getUsername() . ' är inloggad</h2>';
 
 		if ($this->message) {
@@ -264,12 +231,35 @@ class Login {
 	}
 
 	/**
-	 * Source: https://github.com/dntoll/1DV408ExamplesHT2013/blob/master/BookStoreSaveData/BookView.php
 	 * @param String input
-	 * @return String input - tags - trim
+	 * @return String input
 	 */
 	private function sanitize($input) {
 		$temp = trim($input);
-		return filter_var($temp, FILTER_SANITIZE_STRING);
+		return htmlentities($temp);
+	}
+
+	public function okFormLogin() {
+		$this->message = "Inloggningen lyckades";
+	}
+
+	public function okCookieLogin() {
+		$this->message = "Inloggningen lyckades via cookies";
+	}
+
+	public function okLogOut() {
+		$this->message = "Du har nu loggat ut";
+	}
+
+	public function okKeepMeLoggedIn() {
+		$this->message = "Inloggningen lyckades och vi kommer ihåg dig nästa gång";
+	}
+
+	public function failedCookieLogin() {
+		$this->message = "Felaktig information i cookie";
+	}
+
+	public function wrongUserCredentials() {
+		$this->message = "Felaktigt användarnamn och/eller lösenord";
 	}
 }

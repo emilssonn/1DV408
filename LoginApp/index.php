@@ -9,9 +9,9 @@ session_start();
 
 $mysqli = new \mysqli("localhost", "root", "", "1dv408-lab");
 
-$userDAL = new \Model\UserDAL($mysqli);
+$userDAL = new \model\UserDAL($mysqli);
 
-$loginController = new \Controller\Login($userDAL);
+$loginController = new \controller\Login($userDAL);
 
 $html = $loginController->userAction();
 $title = $loginController->getPageTitle();

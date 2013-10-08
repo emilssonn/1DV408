@@ -1,6 +1,6 @@
 <?php
 
-namespace Model;
+namespace model;
 
 class SessionAuth {
 
@@ -17,7 +17,7 @@ class SessionAuth {
 	}
 
 	/**
-	 * @return \Model\User
+	 * @return \model\User
 	 * @throws \Exception If no user in session is found
 	 */
 	public function load() {
@@ -31,7 +31,7 @@ class SessionAuth {
 	 * @return bool, true if successfull
 	 * @throws Exception If logout is unsuccessfull
 	 */
-	public function logout() {
+	public function remove() {
 		try {
 			unset($_SESSION[self::$sessionLocation]);
 			return true;
@@ -41,9 +41,9 @@ class SessionAuth {
 	}
 
 	/**
-	 * @param  \Model\User $user
+	 * @param  \model\User $user
 	 */
-	public function login(\Model\User $user) {
+	public function save(\model\User $user) {
 		$_SESSION[self::$sessionLocation] = $user;
 	}
 }
