@@ -29,96 +29,42 @@ class Login {
 	private $userDAL;
 
 	/**
-	 * @return String page title
-	 */
-	public function getPageTitle() {
-		if ($this->userModel->isUserLoggedIn()) {
-			return "Laboration: Inloggad";
-		} else {
-			return "Laboration: Ej inloggad";
-		}	
-	}
-
-	/**
 	 * @param \model\UserDAL $userDAL
+	 * @param \view\Login $loginView
+	 * @param \model\User $userModel
 	 */
-	public function __construct(\model\UserDAL $userDAL) {
+	public function __construct(\model\UserDAL $userDAL, 
+								\view\Login $loginView, 
+								\model\User $userModel, 
+								\model\SessionAuth $sessionAuthModel) {
 		$this->userDAL = $userDAL;
-		$this->sessionAuthModel = new \model\SessionAuth();
+		$this->sessionAuthModel = $sessionAuthModel;
+		$this->userModel = $userModel;
 			
-		$this->loginView = new \view\Login();	
-		
-		try {
-			$this->userModel = $this->sessionAuthModel->load();
-		} catch(\Exception $e) {
-			$userIP = $this->loginView->getIPAdress();
-			$userAgent = $this->loginView->getUserAgent();
-			$this->userModel = new \model\User($this->userDAL, $userIP, $userAgent);
-		}
+		$this->loginView = $loginView;
 	}
 
 	/**
-	 * Checks what action the user has taken.
-	 * @return string, returns a string of HTML
+	 * Logged in user
+	 * @return string HTML
 	 */
-	public function userAction() {
-		if($this->userModel->isUserLoggedIn() && !$this->loginView->userLogout() ) {		
-			try {
-				$this->controlSession();
-				//Logged in
-				return $this->loginView->getLoggedInHTML($this->userModel);
-			} catch(\Exception $e) {
-				return $this->loginView->getLoginForm();
-			}	
-
-		} else if (!$this->userModel->isUserLoggedIn() && $this->loginView->cookieLogin()) {
-			//Cookie login
-			return $this->userCookieLogin();
-
-		} else if ($this->loginView->formLogin() && !$this->userModel->isUserLoggedIn()) {
-			//Wants to log in
-			return $this->userLogin();
-
-		} else if ($this->userModel->isUserLoggedIn() && $this->loginView->userLogout() ) {
-			try {
-				$this->controlSession();
-				//Log out
-				return $this->userLogOut();
-			} catch(\Exception $e) {
-				return $this->loginView->getLoginForm();
-			}	
-				
-		} else {
-			//Default page, login form
-			return $this->loginView->getLoginForm();
-		}
+	public function loggedInUser() {
+		return $this->loginView->getLoggedInHTML($this->userModel);
 	}
 
 	/**
-	 * Tries to log in the user by cookies
-	 * @return String HTML
+	 * Not logged in user
+	 * @return string HTML
 	 */
-	private function userCookieLogin() {	
-		try {
-			$username = $this->loginView->getUsernameCookie();
-			$token = $this->loginView->getTokenCookie();
-
-			$this->userModel->loginByCookies($this->loginView, $username, $token);
-			$this->sessionAuthModel->save($this->userModel);
-
-			return $this->loginView->getLoggedInHTML($this->userModel);
-		} catch(\Exception $e) {	
-			$this->loginView->deleteCookies();
-
-			return $this->loginView->getLoginForm();
-		}
+	public function notLoggedIn() {
+		return $this->loginView->getLoginForm();
 	}
 
 	/**
 	 * Tries to log in the user
 	 * @return String HTML
 	 */
-	private function userLogin() {
+	public function userLogin() {
 		try {
 			$username = $this->loginView->getFormUsername();
 			$password = $this->loginView->getFormPassword();
@@ -141,21 +87,10 @@ class Login {
 	}
 
 	/**
-	 * Create cookies, save to database
-	 */
-	private function keepMeLoggedIn() {
-		$username = $this->userModel->getUsername();
-		$time = time() + 60;
-		$this->userModel->keepMeLoggedIn($this->loginView, $username, $time);
-		$tempId = $this->userModel->getTempId();
-		$this->loginView->setCookies($username, $tempId, $time);
-	}
-
-	/**
 	 * Tries to log out the user
 	 * @return String HTML
 	 */
-	private function userLogOut() {
+	public function userLogOut() {
 		try {
 			$this->sessionAuthModel->remove();
 			$this->loginView->deleteCookies();
@@ -168,14 +103,33 @@ class Login {
 	}
 
 	/**
-	 * Check if session is in same browser and from same ip as last request
-	 * @throws Exception If session do not match
+	 * Tries to log in the user by cookies
+	 * @return String HTML
 	 */
-	private function controlSession() {
-		$userIP = $this->loginView->getIPAdress();
-		$userAgent = $this->loginView->getUserAgent();
-		if (!$this->userModel->compareSession($userIP, $userAgent)) {
-			throw new \Exception('Sessions do not match');
+	public function userCookieLogin() {	
+		try {
+			$username = $this->loginView->getUsernameCookie();
+			$token = $this->loginView->getTokenCookie();
+
+			$this->userModel->loginByCookies($this->loginView, $username, $token);
+			$this->sessionAuthModel->save($this->userModel);
+
+			return $this->loginView->getLoggedInHTML($this->userModel);
+		} catch(\Exception $e) {	
+			$this->loginView->deleteCookies();
+
+			return $this->loginView->getLoginForm();
 		}
+	}
+
+	/**
+	 * Create cookies, save to database
+	 */
+	private function keepMeLoggedIn() {
+		$username = $this->userModel->getUsername();
+		$time = time() + 60;
+		$this->userModel->keepMeLoggedIn($this->loginView, $username, $time);
+		$tempId = $this->userModel->getTempId();
+		$this->loginView->setCookies($username, $tempId, $time);
 	}
 }

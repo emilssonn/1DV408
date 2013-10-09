@@ -12,14 +12,14 @@ class HTMLPage {
 	 */
 	public function getPage($title, $body) {
 		return '<!DOCTYPE HTML SYSTEM>
-<html>
-  <head>
-    <title>' . $title . '</title>
-    <meta http-equiv=\'content-type\' content=\'text/html; charset=utf8\'>
-  </head>
-  <body>
-  	' . $body . '
-  </body>
-</html>';
+				<html>
+				  <head>
+				    <title>' . $title . '</title>
+				    <meta http-equiv=\'content-type\' content=\'text/html; charset=utf8\'>
+				  </head>
+				  <body>
+				  	' . $body . '
+				  </body>
+				</html>';
 	}
 }

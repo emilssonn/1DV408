@@ -5,8 +5,6 @@ namespace controller;
 require_once("model/LastStickGame.php");
 require_once("view/GameView.php");
 
-// 3 kind of errors
-
 class PlayGame {
 
 	/**
@@ -18,13 +16,6 @@ class PlayGame {
 	 * @var \view\GameView
 	 */
 	private $view;
-
-	//@error, string in controller
-	/**
-	 * @var string
-	 */
-	private $message = "";
-
 
 	public function __construct() {
 		$this->game = new \model\LastStickGame();
@@ -43,60 +34,30 @@ class PlayGame {
 		}
 
 		//Generate Output
-		return $this->view->show($this->message);
+		return $this->view->show();
 	}
 
 	/**
 	* Called when game is still running
 	*/
 	private function playGame() {
-		if ($this->playerSelectSticks()) {
+		if ($this->view->playerSelectSticks()) {
 			try {
-				$sticksDrawnByPlayer = $this->getNumberOfSticks();
+				$sticksDrawnByPlayer = $this->view->getNumberOfSticks();
 
 				$this->game->playerSelectsSticks($sticksDrawnByPlayer, $this->view);
 			} catch(\Exception $e) {
-				//@error, html in controller
-				$this->message = "<h1>Unauthorized input</h1>";
+				//Error message set in view
 			}
 		}
 	}
 
+	/**
+	 * Called when game is over
+	 */
 	private function doGameOver() {
-		if ($this->playerStartsOver()) {
+		if ($this->view->playerStartsOver()) {
 			$this->game->newGame();
 		}		
-	}
-
-	/** 
-	* @return boolean
-	*/
-	private function playerSelectSticks() {
-		//@error, GET in controller
-		//@error, string dependancy to Gameview
-		return isset($_GET["draw"]);
-	}
-
-	/** 
-	* @return boolean
-	*/
-	private function playerStartsOver() {
-		//@error, GET in controller
-		//@error, string dependancy to Gameview
-		return isset($_GET["startOver"]);
-	}
-
-	/** 
-	* @return \model\StickSelection
-	*/
-	private function getNumberOfSticks() {
-		//@error, GET in controller
-		//@error, string dependancy to Gameview
-		switch ($_GET["draw"]) {
-			case 1 : return \model\StickSelection::One(); break;
-			case 2 : return \model\StickSelection::Two(); break;
-			case 3 : return \model\StickSelection::Three(); break;
-		}
-		throw new \Exception("Invalid input");
 	}
 }

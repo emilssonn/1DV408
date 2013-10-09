@@ -18,7 +18,7 @@ class User {
 	private static $correctPassword = '$2a$07$SBuUNsVHQNpLFNaTfySRcewaojeUNbrf9S/umD5uJ218UL45U1iaq';
 
 	/**
-	 * @var int
+	 * @var integer
 	 */
 	private $id;
 
@@ -42,6 +42,9 @@ class User {
 	 */
 	private $username;
 
+	/**
+	 * @var integer
+	 */
 	private $tempId;
 
 	/**
@@ -123,7 +126,7 @@ class User {
 		$cookieExpire = $this->userDAL->getCookieDate($username, $tempId, $this->ip);
 		if ($cookieExpire < time()) {
 			$loginObserver->failedCookieLogin();
-			throw new \Exception('Cookie expire date do not match');
+			throw new \Exception('Cookie has expired');
 		}
 		$this->id = 1;
 		$this->username = $username;

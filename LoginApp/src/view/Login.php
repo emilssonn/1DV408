@@ -26,18 +26,6 @@ class Login implements \model\LoginObserver {
 	private static $cookieLoginPOST = "View::Login::CookieLogin";
 
 	/**
-	 * Name in URL for login
-	 * @var string
-	 */
-	private static $loginGET = "login";
-
-	/**
-	 * Name in URL for logout
-	 * @var string
-	 */
-	private static $logoutGET = "logout";
-
-	/**
 	 * @var \model\User
 	 */
 	private $userModel;
@@ -53,19 +41,15 @@ class Login implements \model\LoginObserver {
 	private $username;
 
 	/**
-	 * true if user wants to login
-	 * @return bool
+	 * @var \view\Application
 	 */
-	public function formLogin() {
-		return isset($_GET[self::$loginGET]) && $_SERVER['REQUEST_METHOD'] === 'POST';
-	}
+	private $applicationView;
 
 	/**
-	 * true if user wants to logout
-	 * @return bool
+	 * @param \view\Application $applicationView
 	 */
-	public function userLogout() {
-		return isset($_GET[self::$logoutGET]);
+	public function __construct(\view\Application $applicationView) {
+		$this->applicationView = $applicationView;
 	}
 
 	/**
@@ -85,11 +69,11 @@ class Login implements \model\LoginObserver {
 	}
 
 	/**
-	 * [getFormUsername description]
-	 * @return [type] [description]
+	 * @return string
+	 * @throws Exception If no username or empty
 	 */
 	public function getFormUsername() {
-		assert($this->formLogin());
+		assert($this->applicationView->formLogin());
 
 		if (!isset($_POST[self::$usernamePOST]) || empty($_POST[self::$usernamePOST])) {
 			$this->message = "Användarnamn saknas";
@@ -100,11 +84,11 @@ class Login implements \model\LoginObserver {
 	}
 
 	/**
-	 * [getFormPassword description]
-	 * @return [type] [description]
+	 * @return string
+	 * @throws Exception If no password or empty
 	 */
 	public function getFormPassword() {
-		assert($this->formLogin());
+		assert($this->applicationView->formLogin());
 
 		if (!isset($_POST[self::$passwordPOST]) || empty($_POST[self::$passwordPOST])) {
 			$this->username = $this->sanitize($_POST[self::$usernamePOST]);
@@ -152,20 +136,6 @@ class Login implements \model\LoginObserver {
 	}
 
 	/**
-	 * @return string
-	 */
-	public function getIPAdress() {
-		return $_SERVER['REMOTE_ADDR'];
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getUserAgent() {
-		return $_SERVER['HTTP_USER_AGENT'];
-	}
-
-	/**
 	 * @param \model\User $user
 	 * @return HTML, returns string of HTML 
 	 */
@@ -176,7 +146,7 @@ class Login implements \model\LoginObserver {
 			$html .= "<p>$this->message</p>";
 		}
 
-		$html .= '<a href="?' . self::$logoutGET . '">Logga ut</a>';
+		$html .= '<a href="?' . $this->applicationView->getLogOutLink() . '">Logga ut</a>';
 
 		return $html;
 	}
@@ -202,7 +172,7 @@ class Login implements \model\LoginObserver {
 	private function getLoginFormHead() {
 		return '
 			<h2>Ej inloggad</h2>
-			<form method="post" action="?' . self::$loginGET . '">
+			<form method="post" action="?' . $this->applicationView->getLoginLink() . '">
 				<fieldset>
 					<legend>Login - Skriv in användarnamn och lösenord</legend>';
 	}

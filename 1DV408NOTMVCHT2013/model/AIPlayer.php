@@ -2,16 +2,15 @@
 
 namespace model;
 
-//1 kind of error
-
 class AIPlayer {
 	
 	/**
 	* Slightly evil AI player
 	* @param int $amountOfSticksLeft
+	* @param \model\StickGameObserver $observer
 	* @return \model\StickSelection
 	*/
-	public function getSelection($amountOfSticksLeft) {
+	public function getSelection($amountOfSticksLeft, StickGameObserver $observer) {
 
 
 		$desiredAmountAfterDraw = array(21, 17, 13, 9, 5, 1);
@@ -22,19 +21,16 @@ class AIPlayer {
 
 				if ($difference > 3 || $difference < 1) {
 					$drawInteger = rand() % 3 + 1; // [1-3]
-					//@error, echo in model
-					echo "<p>AIPlayer - \"Grr...\" </p>";
+					$observer->aiBadDraw();
 				} else {
 					$drawInteger = $difference;
-					//@error, echo in model
-					echo "<p>AIPlayer - \"Got you, you have already lost!!!\"</p>  ";
+					$observer->aiGoodDraw();
 				}
 				break;
 			}
 			
 		}
 	
-
 		//change from integer into valid StickSelection
 		switch ($drawInteger) {
 			case 1 : return StickSelection::One(); break;

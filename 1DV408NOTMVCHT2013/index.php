@@ -13,7 +13,6 @@ $body = $controller->runGame();
 
 $page = new view\HTMLPage();
 
-//@error, string should be in a view?
 echo $page->getPage("Game of sticks", $body);
 
 

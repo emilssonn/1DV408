@@ -2,8 +2,6 @@
 
 namespace view;
 
-require_once("./src/view/Time.php");
-
 class HTMLPage {
 
 	/**
@@ -12,10 +10,6 @@ class HTMLPage {
 	 * @return HTML, string of full page HTML
 	 */
 	public function getHTML($title, $body) {
-		$timeView = new \View\Time();
-
-		$timeString = $timeView->getFullTimeString();
-
 		return "
 			<!DOCTYPE html>
 			<html lang='sv'>
@@ -31,12 +25,9 @@ class HTMLPage {
 					<div>
 						<h1>Laborationskod pe222bz</h1>
 						$body
-						<hr/>
-						<p>$timeString</p>
 					</div>
 				</body>
 
 			</html>";
-
 	}
 }

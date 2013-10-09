@@ -6,17 +6,29 @@ require_once("model/StickSelection.php");
 require_once("model/AIPlayer.php");
 require_once("model/PersistantSticks.php");
 
-//1 or 2 diffrent kind of errors
-
 class LastStickGame {
-	
+
+	/**
+	 * @var integer
+	 */
+	private static $startingNumberOfSticks = 22;
 
 	public function __construct() {
 		$this->ai = new AIPlayer();
-		//@error, view data
-		$this->sticks = new PersistantSticks(\view\GameView::StartingNumberOfSticks);
+		$this->sticks = new PersistantSticks(self::$startingNumberOfSticks);
 	}
 
+	/**
+	 * @return integer
+	 */
+	public function getStartingNumberOfSticks() {
+		return self::$startingNumberOfSticks;
+	}
+
+	/**
+	 * @param  \model\StickSelection    $playerSelection 
+	 * @param  \model\StickGameObserver $observer        
+	 */
 	public function playerSelectsSticks(StickSelection $playerSelection, StickGameObserver $observer) {
 		$this->sticks->removeSticks($playerSelection);
 
@@ -27,9 +39,12 @@ class LastStickGame {
 		} 
 	}	
 
+	/**
+	 * @param \model\StickGameObserver $observer
+	 */
 	private function AIPlayerTurn(StickGameObserver $observer) {
 		$sticksLeft = $this->getNumberOfSticks();
-		$selection = $this->ai->getSelection($sticksLeft);
+		$selection = $this->ai->getSelection($sticksLeft, $observer);
 		
 		$this->sticks->removeSticks($selection);
 		$observer->aiRemoved($selection);
@@ -54,7 +69,6 @@ class LastStickGame {
 	}
 
 	public function newGame() {
-		//@error, view data
-		$this->sticks->newGame(\view\GameView::StartingNumberOfSticks);
+		$this->sticks->newGame(self::$startingNumberOfSticks);
 	}
 }

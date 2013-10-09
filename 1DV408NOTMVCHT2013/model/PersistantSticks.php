@@ -2,13 +2,12 @@
 
 namespace model;
 
-//1 kind of error
-
 class PersistantSticks {
 	private static $sticks = "PersistantSticks::NumberOfSticks";
 
 	/**
 	 * Make sure we have a session
+	 * @param integer $maxAmount
 	 */
 	public function __construct($maxAmount) {
 		assert(isset($_SESSION));
@@ -19,17 +18,11 @@ class PersistantSticks {
 		
 	}
 
+	/**
+	 * @param  integer $maxAmount 
+	 */
 	public function newGame($maxAmount) {
 		$_SESSION[self::$sticks] = $maxAmount;
-	}
-
-	//@error, never used, functionality should be in LastStickGame and it is
-	/**
-	 * Its game over if its only 1 stick left
-	 * @return boolean 
-	 */
-	public function isGameOver() {
-		return $_SESSION[self::$sticks] < 2;
 	}
 
 	/**
@@ -43,7 +36,7 @@ class PersistantSticks {
 	 * We can only remove 1-3 sticks 
 	 * Cannot remove more than we have
 	 * 
-	 * @param  StickSelection $selection [description]
+	 * @param  \model\StickSelection $selection
 	 */
 	public function removeSticks(StickSelection $selection) {
 		assert($selection->getAmount() >= 1);

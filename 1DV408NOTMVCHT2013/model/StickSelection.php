@@ -31,7 +31,7 @@ class StickSelection {
 
 	/**
 	 * Private constructor makes sure we cannot create outside of 1,2,3
-	 * @param [type] $amount [description]
+	 * @param integer $amount
 	 */
 	private function __construct($amount) {
 		$this->amount = $amount;

@@ -5,35 +5,70 @@ namespace view;
 require_once("model/StickGameObserver.php");
 
 class GameView implements \model\StickGameObserver {
-	const StartingNumberOfSticks = 22;
 
 	/** 
 	* @var integer
 	*/
 	private $numberOfSticksAIDrewLastTime = 0;
 
+	/**
+	 * @var string
+	 */
+	private static $drawGET = "draw";
+
+	/**
+	 * @var string
+	 */
+	private static $startOverGET = "startOver";
+
+	/**
+	 * @var string
+	 */
+	private $message;
+
 	/** 
 	* @var boolean
 	*/
 	private $playerWon = false;
 
+	/**
+	 * Player wins
+	 */
 	public function playerWins() {
 		$this->playerWon = true;
 	}
+
+	/**
+	 * PLayer loses
+	 */
 	public function playerLoose() {
 		$this->playerWon = false;
 	}
 
 	/**
 	 * Sets the number of sticks the AI player did
-	 * @param  modelStickSelection $sticks 
+	 * @param  \model\StickSelection $sticks 
 	 */
 	public function aiRemoved(\model\StickSelection $sticks) {
 		$this->numberOfSticksAIDrewLastTime = $sticks->getAmount();
 	}
 
 	/**
-	 * @param modelLastStickGame $game 
+	 * Set the message
+	 */
+	public function aiBadDraw() {
+		$this->message = "<p>AIPlayer - \"Grr...\" </p>";
+	}
+
+	/**
+	 * Set the message
+	 */
+	public function aiGoodDraw() {
+		$this->message = "<p>AIPlayer - \"Got you, you have already lost!!!\"</p>  ";
+	}
+
+	/**
+	 * @param \model\LastStickGame $game 
 	 */
 	public function __construct(\model\LastStickGame $game) {
 		$this->game = $game;
@@ -42,18 +77,45 @@ class GameView implements \model\StickGameObserver {
 	/** 
 	* @return String HTML
 	*/
-	public function show($message) {
+	public function show() {
 		if ($this->game->isGameOver()) {
 
-			return 	$message .
+			return 	$this->message .
 					$this->showSticks() . 
 					$this->showWinner() . 
 					$this->startOver();
 		} else {
-			return 	$message .
+			return 	$this->message .
 					$this->showSticks() . 
 					$this->showSelection();
 		}
+	}
+
+	/** 
+	* @return boolean
+	*/
+	public function playerSelectSticks() {
+		return isset($_GET[self::$drawGET]);
+	}
+
+	/** 
+	* @return boolean
+	*/
+	public function playerStartsOver() {
+		return isset($_GET[self::$startOverGET]);
+	}
+
+	/** 
+	* @return \model\StickSelection
+	*/
+	public function getNumberOfSticks() {
+		switch ($_GET[self::$drawGET]) {
+			case 1 : return \model\StickSelection::One(); break;
+			case 2 : return \model\StickSelection::Two(); break;
+			case 3 : return \model\StickSelection::Three(); break;
+		}
+		$this->message = "<h1>Unauthorized input</h1>";
+		throw new \Exception("Invalid input");
 	}
 
 	/** 
@@ -62,6 +124,7 @@ class GameView implements \model\StickGameObserver {
 	private function showSticks() {
 		$numSticks = $this->game->getNumberOfSticks();
 		$aiDrew = $this->numberOfSticksAIDrewLastTime;
+		$startingNumberOfSticks = $this->game->getStartingNumberOfSticks();
 
 		$opponentsMove = "";
 		if ($aiDrew > 0) {
@@ -75,7 +138,7 @@ class GameView implements \model\StickGameObserver {
 		for (; $i < $aiDrew + $numSticks; $i++) {
 			$sticks .= "."; //Sticks taken by opponent
 		}
-		for (; $i < self::StartingNumberOfSticks; $i++) {
+		for (; $i < $startingNumberOfSticks; $i++) {
 			$sticks .= "_"; //old sticks
 		}
 		return "<p>There is $numSticks stick" . ($numSticks > 1 ? "s" : "") ." left</p>
@@ -89,13 +152,14 @@ class GameView implements \model\StickGameObserver {
 	private function showSelection() {
 		
 		$numSticks = $this->game->getNumberOfSticks();
+		$drawGET = self::$drawGET;
 
 		$ret = "<h2>Select number of sticks</h2>
 				<p>The player who draws the last stick looses</p>";
 		$ret .= "<ol>";
 		for ($i = 1; $i <= 3 && $i < $numSticks; $i++ ) {
 
-			$ret .= "<li><a href='?draw=$i'>Draw $i stick". ($i > 1 ? "s" : ""). "</a></li>";
+			$ret .= "<li><a href='?$drawGET=$i'>Draw $i stick". ($i > 1 ? "s" : ""). "</a></li>";
 		}
 		$ret .= "<ol>";
 
@@ -111,7 +175,7 @@ class GameView implements \model\StickGameObserver {
 					<p>You force the opponent to draw the last stick!</p>";
 		} else {
 			return "<h2>Epic FAIL!</h2>
-					<p>You have to draw the last stick</p>";
+					<p>You cant draw the last stick</p>";
 		}
 	}
 
@@ -119,8 +183,8 @@ class GameView implements \model\StickGameObserver {
 	* @return String HTML
 	*/
 	private function startOver() {
-
-		return "<a href='?startOver'>Start new game</a>";
+		$startOverGET = self::$startOverGET;
+		return "<a href='?$startOverGET'>Start new game</a>";
 		
 	}
 }
