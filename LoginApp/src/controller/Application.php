@@ -46,8 +46,11 @@ class Application {
 	 */
 	private $applicationView;
 
-	public function __construct() {
-		$this->mysqli = new \mysqli("localhost", "root", "", "1dv408-lab");
+	/**
+	 * Init
+	 */
+	public function __construct($mysqli) {
+		$this->mysqli = $mysqli;
 
 		$this->userDAL = new \model\UserDAL($this->mysqli);
 		$this->sessionAuthModel = new \model\SessionAuth();
@@ -66,32 +69,31 @@ class Application {
 		$this->loginController = new \controller\Login($this->userDAL, 
 														$this->loginView, 
 														$this->userModel,
-														$this->sessionAuthModel);
+														$this->sessionAuthModel,
+														$this->applicationView);
 	}
 
+	/**
+	 * @return string HTML
+	 */
 	public function runApplication() {
 		$html;
 		if($this->userModel->isUserLoggedIn() && !$this->applicationView->userLogout() ) {		
-			//Continue with if statements for a bigger application
 			try {
 				$this->controlSession();
+				//Continue with if statements for a bigger application
 				//Logged in
 				$html = $this->loginController->loggedInUser();
-				$this->applicationView->loggedInTitle();
 			} catch(\Exception $e) {
 				$html = $this->loginController->notLoggedIn();
 			}	
-
 		} else if (!$this->userModel->isUserLoggedIn() && $this->loginView->cookieLogin()) {
 			//Cookie login
+			//@todo, how to move this to application view
 			$html = $this->loginController->userCookieLogin();
-			$this->applicationView->loggedInTitle();
-
 		} else if ($this->applicationView->formLogin() && !$this->userModel->isUserLoggedIn()) {
 			//Wants to log in
 			$html = $this->loginController->userLogin();
-			$this->applicationView->loggedInTitle();
-
 		} else if ($this->userModel->isUserLoggedIn() && $this->applicationView->userLogout() ) {
 			try {
 				$this->controlSession();
@@ -99,8 +101,7 @@ class Application {
 				$html = $this->loginController->userLogOut();
 			} catch(\Exception $e) {
 				$html = $this->loginController->notLoggedIn();
-			}	
-				
+			}		
 		} else {
 			//Default page, login form
 			$html = $this->loginController->notLoggedIn();
@@ -108,11 +109,16 @@ class Application {
 		return $this->applicationView->getPageHTML($html);
 	}
 
+	/**
+	 * Control if the session is valid, ip and user agent match
+	 * @return bool
+	 */
 	private function controlSession() {
 		$userIP = $this->applicationView->getIPAdress();
 		$userAgent = $this->applicationView->getUserAgent();
 		if (!$this->userModel->compareSession($userIP, $userAgent)) {
 			throw new \Exception('Sessions do not match');
 		}
+		return true;
 	}
 }

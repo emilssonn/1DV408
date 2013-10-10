@@ -79,6 +79,7 @@ class Login implements \model\LoginObserver {
 			$this->message = "Användarnamn saknas";
 			throw new \Exception('No username entered');
 		} else {
+			$this->username = $this->sanitize($_POST[self::$usernamePOST]);
 			return $this->sanitize($_POST[self::$usernamePOST]);
 		}
 	}
@@ -208,6 +209,8 @@ class Login implements \model\LoginObserver {
 		$temp = trim($input);
 		return htmlentities($temp);
 	}
+
+	//Set the message
 
 	public function okFormLogin() {
 		$this->message = "Inloggningen lyckades";

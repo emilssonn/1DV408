@@ -39,10 +39,16 @@ class Application {
 		$this->htmlPageView = new \view\HTMLPage();
 	}
 
+	/**
+	 * @param string $title
+	 */
 	public function setPageTitle($title) {
 		$this->pageTitle = $title;
 	}
 
+	/**
+	 * Set the title
+	 */
 	public function loggedInTitle() {
 		$this->setPageTitle("Laboration: Inloggad");
 	}

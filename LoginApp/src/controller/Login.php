@@ -9,9 +9,14 @@ require_once("./src/model/SessionAuth.php");
 class Login {
 
 	/**
-	 * @var \View\Login
+	 * @var \view\Login
 	 */
 	private $loginView;
+
+	/**
+	 * @var \view\Application
+	 */
+	private $applicationView;
 
 	/**
 	 * @var \model\User
@@ -32,16 +37,20 @@ class Login {
 	 * @param \model\UserDAL $userDAL
 	 * @param \view\Login $loginView
 	 * @param \model\User $userModel
+	 * @param \model\SessionAuth $sessionAuthModel
+	 * @param \view\Application $applicationView
 	 */
 	public function __construct(\model\UserDAL $userDAL, 
 								\view\Login $loginView, 
 								\model\User $userModel, 
-								\model\SessionAuth $sessionAuthModel) {
+								\model\SessionAuth $sessionAuthModel,
+								\view\Application $applicationView) {
 		$this->userDAL = $userDAL;
 		$this->sessionAuthModel = $sessionAuthModel;
 		$this->userModel = $userModel;
 			
 		$this->loginView = $loginView;
+		$this->applicationView = $applicationView;
 	}
 
 	/**
@@ -49,6 +58,7 @@ class Login {
 	 * @return string HTML
 	 */
 	public function loggedInUser() {
+		$this->applicationView->loggedInTitle();
 		return $this->loginView->getLoggedInHTML($this->userModel);
 	}
 
@@ -76,6 +86,7 @@ class Login {
 					$this->keepMeLoggedIn();
 				}
 
+				$this->applicationView->loggedInTitle();
 				return $this->loginView->getLoggedInHTML($this->userModel);
 			} catch(\Exception $e) {
 				return $this->loginView->getLoginForm();
@@ -114,6 +125,7 @@ class Login {
 			$this->userModel->loginByCookies($this->loginView, $username, $token);
 			$this->sessionAuthModel->save($this->userModel);
 
+			$this->applicationView->loggedInTitle();
 			return $this->loginView->getLoggedInHTML($this->userModel);
 		} catch(\Exception $e) {	
 			$this->loginView->deleteCookies();

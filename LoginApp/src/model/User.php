@@ -55,6 +55,7 @@ class User {
 	}
 
 	/**
+	 * @param \model\UserDAL $userDAL
 	 * @param string $ip       
 	 * @param string $userAgent
 	 */
@@ -66,13 +67,13 @@ class User {
 	}
 
 	/**
+	 * @param \model\LoginObserver $loginObserver
 	 * @param String $username
 	 * @param String $password
 	 * @return bool, returns true if successfull
 	 * @throws Exception If username or password is not correct
 	 */
 	public function login(\model\LoginObserver $loginObserver, $username, $password) {
-
 		if ($username == self::$correctUsername && 
 			crypt($password, self::$correctPassword) == self::$correctPassword) {
 			
@@ -93,9 +94,8 @@ class User {
 	}
 
 	/**
-	 * @param  \model\UserDAL $userDAL   
+	 * @param  \model\LoginObserver $loginObserver   
 	 * @param  string       $username   
-	 * @param  string       $randString 
 	 * @param  int       	$time                          
 	 */
 	public function keepMeLoggedIn(\model\LoginObserver $loginObserver, $username, $time) {
@@ -104,6 +104,9 @@ class User {
 		$loginObserver->okKeepMeLoggedIn();
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getTempId() {
 		return $this->tempId;
 	}
@@ -116,13 +119,12 @@ class User {
 	}
 
 	/**
-	 * @param  \model\UserDAL $userDAL 
+	 * @param  \model\LoginObserver $loginObserver 
 	 * @param  string      $username
 	 * @param  string      $tempId
 	 * @throws Exception If cookie has expired                 
 	 */
 	public function loginByCookies(\model\LoginObserver $loginObserver, $username, $tempId) {
-
 		$cookieExpire = $this->userDAL->getCookieDate($username, $tempId, $this->ip);
 		if ($cookieExpire < time()) {
 			$loginObserver->failedCookieLogin();
