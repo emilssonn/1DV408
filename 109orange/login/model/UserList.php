@@ -17,7 +17,7 @@ class UserList {
  	 * You might want to use a database instead.
 	 * @var \common\model\PHPFileStorage
 	 */
-	private $adminFile;
+	private $phpFileStorage;
 
 	/**
 	 * We only have one user in the system right now.
@@ -26,10 +26,11 @@ class UserList {
 	private $users;
 
 
-	public function  __construct( ) {
+	public function  __construct() {
+		$this->phpFileStorage = new \common\model\PHPFileStorage("data/users.php");
+
 		$this->users = array();
-		
-		$this->loadAdmin();
+		$this->loadAll();
 	}
 
 	/**
@@ -45,12 +46,26 @@ class UserList {
 				return  $user;
 			}
 		}
-		throw new \Exception("could not login, no matching user");
+		throw new \Exception("could not find user");
+	}
+
+	/**
+	 * Do we have this user in this list?
+	 * @param  UserCredentials $fromClient
+	 * @return bool
+	 */
+	public function userExists(UserCredentials $fromClient) {
+		foreach($this->users as $user) {
+			if ($user->getUserName() == $fromClient->getUserName() ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public function update(UserCredentials $changedUser) {
 		//this user needs to be saved since temporary password changed
-		$this->adminFile->writeItem($changedUser->getUserName(), $changedUser->toString());
+		$this->phpFileStorage->writeItem($changedUser->getUserName(), $changedUser->toString());
 
 		\Debug::log("wrote changed user to file", true, $changedUser);
 		$this->users[$changedUser->getUserName()->__toString()] = $changedUser;
@@ -64,10 +79,9 @@ class UserList {
 	 */
 	private function loadAdmin() {
 		
-		$this->adminFile = new \common\model\PHPFileStorage("data/admin.php");
 		try {
 			//Read admin from file
-			$adminUserString = $this->adminFile->readItem("Admin");
+			$adminUserString = $this->phpFileStorage->readItem("Admin");
 			$admin = UserCredentials::fromString($adminUserString);
 
 		} catch (\Exception $e) {
@@ -81,5 +95,24 @@ class UserList {
 		}
 
 		$this->users[$admin->getUserName()->__toString()] = $admin;
+	}
+
+	/**
+	 * Load all users from file
+	 * @return array of \login\model\UserCredentials
+	 */
+	private function loadAll() {
+		try {
+			$users = array();
+			$usersStrings = $this->phpFileStorage->readAll();
+
+			foreach ($usersStrings as $username => $value) {
+				$user = UserCredentials::fromString($value);
+				$this->users[$user->getUserName()->__toString()] = $user;
+			}
+		} catch (\Exception $e) {
+			\Debug::log("Could not read file", true, $e);
+		}
+		
 	}
 }

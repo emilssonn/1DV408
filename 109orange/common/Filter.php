@@ -11,9 +11,20 @@ class Filter {
 	 */
 	public static function sanitizeString($string) {
 		$original = $string;
+		$string = self::trimString($string);
+		$string = strip_tags($string);
+		return $string;
+	}
+
+	/**
+	 * trim string
+	 * @param  string $string
+	 * @return string
+	 */
+	public static function trimString($string) {
+		$original = $string;
 		$string = ltrim($string);
 		$string = rtrim($string);
-		$string = strip_tags($string);
 		return $string;
 	}
 	

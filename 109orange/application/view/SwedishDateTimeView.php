@@ -29,19 +29,19 @@ class SwedishDateTimeView {
 	 * @return String HTML
 	 */
 	private function translateDay($dayOfWeekInteger) {
-		assert($dayOfWeekInteger >= 1);
-		assert($dayOfWeekInteger <= 7);
+		assert($dayOfWeekInteger >= 0);
+		assert($dayOfWeekInteger <= 6);
 
 		$dayname = "";
 		//Translate to Swedish
 		switch ($dayOfWeekInteger) {
+			case 0 : $dayname = "Söndag"; break;
 			case 1 : $dayname = "Måndag"; break;
 			case 2 : $dayname = "Tisdag"; break;
 			case 3 : $dayname = "Onsdag"; break;
 			case 4 : $dayname = "Torsdag"; break;
 			case 5 : $dayname = "Fredag"; break;
 			case 6 : $dayname = "Lördag"; break;
-			case 7 : $dayname = "Söndag"; break;
 		}
 		return $dayname;
 	}

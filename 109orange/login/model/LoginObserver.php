@@ -8,5 +8,6 @@ namespace login\model;
 interface LoginObserver {
 	public function loginFailed();
 	public function loginOK(TemporaryPasswordServer $info);
+	public function registerOk(\login\model\UserCredentials $userCred);
 }
 

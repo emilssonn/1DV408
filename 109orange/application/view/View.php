@@ -17,12 +17,18 @@ class View {
 	 * @var  SwedishDateTimeView $timeView;
 	 */
 	private $timeView;
+
+	/**
+	 * @var \register\view\Register
+	 */
+	private $registerView;
 	
 	/**
 	 * @param LoginviewLoginView $loginView 
 	 */
-	public function __construct(\login\view\LoginView $loginView) {
+	public function __construct(\login\view\LoginView $loginView, \register\view\Register $registerView) {
 		$this->loginView = $loginView;
+		$this->registerView = $registerView;
 		$this->timeView = new SwedishDateTimeView();
 	}
 	
@@ -31,10 +37,15 @@ class View {
 	 */
 	public function getLoggedOutPage() {
 		$html = $this->getHeader(false);
+		$registerLink = $this->registerView->getRegisterLink();
 		$loginBox = $this->loginView->getLoginBox(); 
 
-		$html .= "<h2>Ej Inloggad</h2>
-				  	$loginBox
+		$html .= "
+				<p>
+					$registerLink
+				</p>
+				<h2>Ej Inloggad</h2>
+				$loginBox
 				 ";
 		$html .= $this->getFooter();
 
@@ -59,7 +70,27 @@ class View {
 		return new \common\view\Page("Laboration. Inloggad", $html);
 	}
 	
-	
+	/**
+	 * @return \common\view\Page
+	 */
+	public function getRegisterPage() {
+		$html = $this->getHeader(false);
+		$registerForm = $this->registerView->getRegisterForm();
+
+
+		$html .= "
+				<p>
+				 	<a href='.'>Tillbaka</a>
+				 </p>
+				<h2>Ej inloggad, Registrera ny användare</h2>
+				 	
+				 	$registerForm
+				 ";
+		$html .= $this->getFooter();
+
+		return new \common\view\Page("Laboration. Registrering av ny användare", $html);
+	}
+
 	/**
 	 * @param boolean $isLoggedIn
 	 * @return  String HTML
@@ -77,7 +108,4 @@ class View {
 		$timeString = $this->timeView->getTimeString(time());
 		return "<p>$timeString<p>";
 	}
-	
-	
-	
 }

@@ -21,13 +21,16 @@ class LoginView implements \login\model\LoginObserver {
 	 */
 	private $message = "";
 	
+	/**
+	 * username that was registrated
+	 * @var string
+	 */
+	private $regUsername;
 	
 	/**
 	 * @return String HTML
 	 */
-	public function getLoginBox() {
-		
-		 
+	public function getLoginBox() { 
 		$user = $this->getUserName();
 		$checked = $this->userWantsToBeRemembered() ? "checked=checked" : "";
 		
@@ -47,7 +50,6 @@ class LoginView implements \login\model\LoginObserver {
 			</form>";
 			
 		return $html;
-
 	}	
 	
 	/**
@@ -122,13 +124,20 @@ class LoginView implements \login\model\LoginObserver {
 				$this->message  = "<p>Inloggning lyckades och vi kommer ihåg dig nästa gång</p>";
 			}
 			
-			$expire = $tempCookie->getExpireDate();// ;
+			$expire = $tempCookie->getExpireDate();
 			setcookie(self::$USERNAME, $this->getUserName(), $expire);
 			setcookie(self::$PASSWORD, $tempCookie->getTemporaryPassword(), $expire);
 		} else {
 			$this->message  = "<p>Inloggning lyckades</p>";
 		} 
-		
+	}
+
+	/**
+	 * @param  \login\model\UserCredentials $userCred
+	 */
+	public function registerOk(\login\model\UserCredentials $userCred) {
+		$this->message = "<p>Registrering av ny användare lyckades</p>";
+		$this->regUsername = $userCred->getUserName();
 	}
 	
 	public function doLogout() {
@@ -136,8 +145,6 @@ class LoginView implements \login\model\LoginObserver {
 		
 		$this->message  = "<p>Du har nu loggat ut</p>";
 	}
-	
-	
 	
 	/**
 	 * note: private!
@@ -148,10 +155,11 @@ class LoginView implements \login\model\LoginObserver {
 			return \Common\Filter::sanitizeString($_POST[self::$USERNAME]);
 		else if (isset($_COOKIE[self::$USERNAME]))
 			return \Common\Filter::sanitizeString($_COOKIE[self::$USERNAME]);
+		else if ($this->regUsername)
+			return $this->regUsername;
 		else
 			return "";
 	}
-	
 	
 	/**
 	 * note: private!
@@ -165,7 +173,6 @@ class LoginView implements \login\model\LoginObserver {
 			return "";
 	}
 	
-
 	/**
 	 * If user checks the remember me checkbox
 	 * @return boolean 

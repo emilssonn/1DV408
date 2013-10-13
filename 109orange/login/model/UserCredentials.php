@@ -19,6 +19,7 @@ class UserCredentials {
 	 * @var Password
 	 */
 	private $password; //original password but encrypted
+	private $controllPassword;
 	private $temporaryPassword; //can be stored at client
 	
 
@@ -54,8 +55,6 @@ class UserCredentials {
 												  TemporaryPasswordClient $temporaryPassword) {
 		return new UserCredentials($userName, Password::emptyPassword(), $temporaryPassword);
 	}
-
-	
 
 	/**
      * @todo  really unserialization of this object...
@@ -102,10 +101,6 @@ class UserCredentials {
 		}
 		return false;
 	}
-	
-	
-	
-	
 
 	/**
 	 * @todo  really serialization of this object...
