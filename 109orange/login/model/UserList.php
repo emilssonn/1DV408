@@ -9,7 +9,6 @@ require_once("common/model/PHPFileStorage.php");
 /**
  * represents All users in the system
  *
-
  */
 class UserList {
 	/**
@@ -103,7 +102,6 @@ class UserList {
 	 */
 	private function loadAll() {
 		try {
-			$users = array();
 			$usersStrings = $this->phpFileStorage->readAll();
 
 			foreach ($usersStrings as $username => $value) {

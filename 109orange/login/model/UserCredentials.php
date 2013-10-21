@@ -19,7 +19,7 @@ class UserCredentials {
 	 * @var Password
 	 */
 	private $password; //original password but encrypted
-	private $controllPassword;
+
 	private $temporaryPassword; //can be stored at client
 	
 
