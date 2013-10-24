@@ -9,8 +9,8 @@ class Register {
 
 	private $userDAL;
 		
-	public function __construct(\mysqli $mysqli) {		
-		$this->userDAL = new \authorization\model\UserDAL($mysqli);
+	public function __construct() {		
+		$this->userDAL = new \authorization\model\UserDAL();
 	}
 
 	/**

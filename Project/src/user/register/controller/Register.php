@@ -28,11 +28,10 @@ class Register {
 	private $regSuccessfull = false;
 
 	public function __construct(\register\view\Register $registerView, 
-								\authorization\view\Login $loginView,
-								\mysqli $mysqli) {
+								\authorization\view\Login $loginView) {
 		$this->registerView = $registerView;
 		$this->loginView = $loginView;
-		$this->registerModel = new \register\model\Register($mysqli);;
+		$this->registerModel = new \register\model\Register();
 	}
 
 	/**

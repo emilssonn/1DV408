@@ -17,17 +17,10 @@ class UserDAL {
 	 */
 	private static $userTable = "user";
 
-	/**
-	 * @var mysqli
-	 */
-	private $mysqli;
+	private $dbConnection;
 
-	/**
-	 * @param mysqli $mysqli
-	 */
-	public function __construct(\mysqli $mysqli) {
-		$this->mysqli = $mysqli;
-		$this->dbConnection = new \common\model\DbConnection($this->mysqli);
+	public function __construct() {
+		$this->dbConnection = \common\model\DbConnection::getInstance();
 	}
 
 	public function userExists(\authorization\model\UserCredentials $userCred) {

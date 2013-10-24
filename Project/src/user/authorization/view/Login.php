@@ -47,6 +47,8 @@ class Login implements \authorization\model\LoginObserver {
 
 	private $navigationView;
 
+	
+
 	/**
 	 * @param \view\Application $applicationView
 	 */
@@ -62,23 +64,29 @@ class Login implements \authorization\model\LoginObserver {
 		$checked = $this->userWantsToBeRemembered() ? "checked=checked" : "";
 
 		$html = "
-			<form action='?" . $this->navigationView->getLogin() . "' method='post' enctype='multipart/form-data'>
+			<form action='?" . $this->navigationView->getLogin() . "' method='post' enctype='multipart/form-data' class='form-signin'>
 				<fieldset>
 					$this->message
-					<legend>Login - Skriv in användarnamn och lösenord</legend>
-					<label for='UserNameID' >Användarnamn :</label>
-					<input type='text' size='20' name='" . self::$usernamePOST . "' id='UserNameID' value='$user' />
-					<label for='PasswordID' >Lösenord  :</label>
-					<input type='password' size='20' name='" . self::$passwordPOST . "' id='PasswordID' value='' />
-					<label for='AutologinID' >Håll mig inloggad  :</label>
-					<input type='checkbox' name='" . self::$CHECKED . "' id='AutologinID' $checked/>
-					<input type='submit' name=''  value='Logga in' />
+					<legend class='form-signin-heading'>Sign in</legend>
+					
+					<label for='UserNameID'>Username:</label>
+					<input type='text' size='20' name='" . self::$usernamePOST . "' id='UserNameID' value='$user' class='form-control' placeholder='Username' autofocus>
+					
+					<label for='PasswordID'>Password:</label>
+					<input type='password' size='20' name='" . self::$passwordPOST . "' id='PasswordID' class='form-control' placeholder='Password'>
+						
+					<label for='AutologinID' class='checkbox'>
+						<input type='checkbox' name='" . self::$CHECKED . "' id='AutologinID' $checked>
+						Remember me
+					</label>
+
+					<input type='submit' value='Sign in' class='btn btn-lg btn-primary btn-block'>
 				</fieldset>
 			</form>";
 			
 		return $html;
-	}	
-	
+	}
+
 	/**
 	 * @return boolean
 	 */
@@ -103,7 +111,7 @@ class Login implements \authorization\model\LoginObserver {
 	public function doLogout() {
 		$this->removeCookies();
 		
-		$this->message  = "<p>Du har nu loggat ut</p>";
+		$this->message  = "<p>You have been logged out.</p>";
 	}
 	
 	/**

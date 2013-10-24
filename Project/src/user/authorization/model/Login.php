@@ -14,9 +14,9 @@ class Login {
 
 	private $ip;
 	
-	public function __construct(\mysqli $mysqli) {
+	public function __construct() {
 		$this->sessionAuthModel = new \authorization\model\SessionAuth();
-		$this->userDAL = new \authorization\model\UserDAL($mysqli);
+		$this->userDAL = new \authorization\model\UserDAL();
 		$this->ip = $_SERVER["REMOTE_ADDR"];
 	}
 	

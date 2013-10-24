@@ -18,6 +18,17 @@ class Navigation {
 
 	private static $registerGET = "register";
 
+	private static $homeGET = "home";
+
+	private static $formGET = "form";
+
+	private static $createFormGET = "create";
+
+	private static $addQuestionGET = "question";
+
+	private static $showFormGET = "show";
+
+	private static $editFormGET = "edit";
 
 
 	/**
@@ -38,6 +49,22 @@ class Navigation {
 		return self::$registerGET;
 	}
 
+	public function getForm() {
+		return self::$formGET;
+	}
+
+	public function getShowForm() {
+		return self::$showFormGET;
+	}
+
+	public function getCreateForm() {
+		return self::$createFormGET;
+	}
+
+	public function getQuestion() {
+		return self::$addQuestionGET;
+	}
+
 	public function loginWithReturnUrl() {
 		header("Location: ?login&ref=" . $_SERVER["QUERY_STRING"]);
 	}
@@ -46,7 +73,7 @@ class Navigation {
 	 * @return String HTML
 	 */
 	public function getLogoutButton() {
-		return "<a href='?" . $this->getLogOut() . "'>Logga ut</a>";
+		return "<a href='?" . $this->getLogOut() . "'>Sign out</a>";
 	}
 
 	/**
@@ -54,7 +81,7 @@ class Navigation {
 	 */
 	public function getRegisterLink() {
 		$register = $this->getRegister();
-		return "<a href='?$register'>Registrera ny användare</a>";
+		return "<a href='?$register'>Sign up</a>";
 	}
 
 	/**
@@ -62,6 +89,45 @@ class Navigation {
 	 */
 	public function wantsToRegister() {
 		return isset($_GET[$this->getRegister()]);
+	}
+
+	public function userHome() {
+		return isset($_GET[self::$homeGET]);
+	}
+
+	public function createForm() {
+		return isset($_GET[self::$formGET]) && 
+				isset($_GET[self::$createFormGET]);
+	}
+
+	public function editForm() {
+		return isset($_GET[self::$formGET]) && 
+				isset($_GET[self::$editFormGET]);
+	}
+
+	public function addQuestion() {
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$createFormGET]) && isset($_GET[self::$addQuestionGET]);
+	}
+
+	public function showForm() {
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$showFormGET]);
+	}
+
+	public function goToHome() {
+		$home = self::$homeGET;
+		header("Location: ?$home");
+	}
+
+	public function goToForm($id) {
+		$form = self::$formGET;
+		$show = self::$showFormGET;
+		header("Location: ?$form=$id&$show");
+	}
+
+	public function goToEditForm($id) {
+		$form = self::$formGET;
+		$edit = self::$editFormGET;
+		header("Location: ?$form=$id&$edit");
 	}
 
 }

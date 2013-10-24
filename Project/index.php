@@ -7,12 +7,17 @@ require_once("./src/common/view/PageView.php");
 session_set_cookie_params(0, "/1DV408/Project", "", false, true);
 session_start();
 
-$mysqli = new \mysqli($dbServer, $dbUser, $dbPassword, $db);
+$dbConnection = \common\model\DbConnection::getInstance();
+$dbConnection->connect($dbServer, $dbUser, $dbPassword, $db);
+//$mysqli = new \mysqli($dbServer, $dbUser, $dbPassword, $db);
 
-$application = new \application\controller\Application($mysqli);
 $pageView = new \common\view\PageView();
+$application = new \application\controller\Application($pageView);
+
 
 
 $page = $application->runApplication();
 
-echo $pageView->GetHTMLPage($page);
+$dbConnection->close();
+
+echo $pageView->getHTML($page);

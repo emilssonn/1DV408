@@ -46,21 +46,21 @@ class Register implements \register\model\RegisterObserver {
 		}
 
 		$html = "
-			<form action='?" . $this->navigationView->getRegister() . "' method='post' enctype='multipart/form-data'>
+			<form action='?" . $this->navigationView->getRegister() . "' method='post' enctype='multipart/form-data' class='form-signin'>
 				<fieldset>
 					$htmlMessages
-					<legend>Registrera ny användare - Skriv in användarnamn och lösenord</legend>
-					<label for='UserNameID' >Användarnamn :</label>
-					<input type='text' size='20' name='" . self::$USERNAME . "' id='UserNameID' value='$user' />
-					<br/>
-					<label for='PasswordID' >Lösenord  :</label>
-					<input type='password' size='20' name='" . self::$PASSWORD . "' id='PasswordID' />
-					<br/>
-					<label for='PasswordID2' >Repetera Lösenord  :</label>
-					<input type='password' size='20' name='" . self::$CONTROLLPASSWORD . "' id='PasswordID2' />
-					<br/>
+					<legend class='form-signin-heading'>Sign up</legend>
 
-					<input type='submit' name=''  value='Registrera' />
+					<label for='UserNameID'>Username:</label>
+					<input type='text' name='" . self::$USERNAME . "' id='UserNameID' value='$user' class='form-control' placeholder='Username' autofocus>
+					
+					<label for='PasswordID'>Password:</label>
+					<input type='password' name='" . self::$PASSWORD . "' id='PasswordID' class='form-control' placeholder='Password'>
+
+					<label for='PasswordID2' >Repeat password</label>
+					<input type='password' name='" . self::$CONTROLLPASSWORD . "' id='PasswordID2' class='form-control' placeholder='Repeat password'>
+					
+					<input type='submit' value='Sign up' class='btn btn-lg btn-primary btn-block'>
 				</fieldset>
 			</form>";
 			

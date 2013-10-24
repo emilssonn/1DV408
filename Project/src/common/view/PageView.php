@@ -1,75 +1,65 @@
 <?php
 
-
 namespace common\view;
 
-/**
- * PageView generates HTML pages from title and body-texts
- * also handles charsets and stylesheets
- **/
 class PageView {
-  
-  private $metaTags = array();
-  private $charset;
-  
-  /**
-  * Called when using new PageView();
-  * @param string $charset  
-  **/
-  public function __construct($charset = "utf-8") {
-    $this->charset = $charset;
-  }
-  
-  /**
-  * Adds a CSS stylesheet to the head of the document
-  * @param urlstring $href url to css file
-  **/
-  public function AddStyleSheet($href) {
-    //TODO: "/>" is not really valid for "HTML 4.01 Transitional" so these tags are not ended
-    $this->metaTags[] = "<link rel='StyleSheet' href='$href' type='text/css'";
-  }
-  
-  /**
-   * Builds meta and CSS tags as a HTML/XML string
-   *    
-   * @param bool $isXML is the document an XML file and tags should be closed 
-   * @return string  
-   */
-  private function BuildHeadTags($isXML) {
-    $end = ">";
-    if ($isXML) {
-      $end = "/>";
-    }
-    $retValue = "";
-    foreach($this->metaTags as $tag) {
-      $retValue .= $tag . "$end\n            "; // "\n            " for readability
-    }
-    return $retValue;
-  }
-  
-  /**
-  * Returns a HTML 4.01 Transitional page
-  * @param string $title  
-  * @param string $body    
-  * @return string     
-  **/
-  public function GetHTMLPage(\common\view\Page $page) {
-    
-    $head = $this->BuildHeadTags(false);
-    
-    $html = "
-    <!DOCTYPE HTML SYSTEM>
-    <html>
-    <head>
-      <title>$page->title</title>
-      <meta http-equiv='content-type' content='text/html; charset=$this->charset'>
-      $head
-    </head>
-    <body>
-      $page->body
-    </body>
-    </html>";
-    
-    return $html;
-  }
+
+	private $metaTags = array();
+
+	private $javaScriptTags = array();
+
+	public function addStyleSheet($href, $media = "screen") {
+		$this->metaTags[] = "<link href='$href' rel='stylesheet' media='$media'>";
+	}
+
+	public function addJavaScript($src) {
+		$this->javaScriptTags[] = "<script src='$src'></script>";
+	}
+
+	public function getHTML(\common\view\Page $page) {
+		$headCss = $this->getHeadTags();
+		$bodyJs = $this->getJavaScriptTags();
+
+		$html =
+				"<!DOCTYPE html>
+					<html>
+						<head>
+							<title>$page->title</title>
+							<meta charset='UTF-8'>
+							<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+							<!-- Bootstrap -->
+    						<link href='css/vendor/bootstrap.min.css' rel='stylesheet' media='screen'>
+    						<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    						<!--[if lt IE 9]>
+      							<script src='javascript/vendor/html5shiv.js'></script>
+      							<script src='javascript/vendor/respond.min.js'></script>
+    						<![endif]-->
+    						$headCss
+    					</head>
+    					<body>
+    						$page->body
+	    					<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	    					<script src='//code.jquery.com/jquery.js'></script>
+	    					<script src='javascript/vendor/bootstrap.min.js'></script>
+	    					$bodyJs
+	    				</body>
+	    			</html>";
+	    return $html;
+	}
+
+	private function getHeadTags() {
+		$metaTags = "";
+		foreach ($this->metaTags as $tag) {
+			$metaTags .= $tag . "\n";
+		}
+		return $metaTags;
+	}
+
+	private function getJavaScriptTags() {
+		$jsTags = "";
+		foreach ($this->javaScriptTags as $tag) {
+			$jsTags .= $tag . "\n";
+		}
+		return $jsTags;
+	}
 }

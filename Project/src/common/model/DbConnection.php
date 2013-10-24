@@ -2,12 +2,38 @@
 
 namespace common\model;
 
-class DbConnection {
+final class DbConnection {
 
+	private static $instance = null;
 	private $mysqli;
 
-	public function __construct(\mysqli $mysqli) {
-		$this->mysqli = $mysqli;
+	public static function getInstance() {
+		if (!isset(self::$instance)) {
+            self::$instance = new self;
+        }
+        return self::$instance;
+	}
+
+	/**
+	 * Prevent from being used from outside
+	 */
+	private function __construct() {
+		
+	}
+
+	/**
+	 * Prevent from being used from outside
+	 */
+	private function __clone() {
+
+	}
+
+	public function connect($dbServer, $dbUser, $dbPassword, $db) {
+		$this->mysqli = new \mysqli($dbServer, $dbUser, $dbPassword, $db);
+	}
+
+	public function close() {
+		$this->mysqli->close();
 	}
 
 	public function runSql($sql, $paramsArray, $paramsTypeString) {
@@ -27,6 +53,10 @@ class DbConnection {
 		}
 
 		return $statement;
+	}
+
+	public function getLastInsertedId() {
+		return $this->mysqli->insert_id;
 	}
 
 	/**

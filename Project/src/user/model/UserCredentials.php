@@ -75,6 +75,10 @@ class UserCredentials {
 		return $this->password;
 	}
 	
+	public function getId() {
+		return $this->id;
+	}
+	
 	/**
 	 * @return TemporaryPassword
 	 */

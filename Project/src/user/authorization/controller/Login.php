@@ -12,21 +12,17 @@ class Login {
 	 */
 	private $loginView;
 
-	/**
-	 * @var \view\Application
-	 */
-	private $applicationView;
+	private $navigationView;
 
 	private $loginModel;
 
-	public function __construct(\mysqli $mysqli, 
-								\authorization\view\Login $loginView, 
-								\application\view\Application $applicationView) {
+	public function __construct(\authorization\view\Login $loginView, 
+								\application\view\Navigation $navigationView) {
 
-		$this->loginModel = new \authorization\model\Login($mysqli);
+		$this->loginModel = new \authorization\model\Login();
 			
 		$this->loginView = $loginView;
-		$this->applicationView = $applicationView;
+		$this->navigationView = $navigationView;
 	}
 
 	/**
@@ -64,7 +60,7 @@ class Login {
 					$credentials = $this->loginModel->doLogin($credentials, $this->loginView);
 					if ($this->loginView->userWantsToBeRemembered())
 						$this->loginModel->userWantsToBeRemembered($credentials, $this->loginView);
-					//@todo fix error handling, login ok but iwth remeber me error
+					$this->navigationView->goToHome();
 				} catch (\Exception $e) {
 					$this->loginView->LoginFailed();
 				}
