@@ -12,8 +12,12 @@ require_once("./src/home/view/Home.php");
 require_once("./src/home/controller/Home.php");
 require_once("./src/form/view/CreateForm.php");
 require_once("./src/form/controller/CreateForm.php");
+require_once("./src/form/controller/ListForms.php");
+require_once("./src/common/controller/IController.php");
+require_once("./src/form/controller/AnswerForm.php");
+require_once("./src/form/controller/ViewResults.php");
 
-class Application {
+class Application implements \common\controller\IController {
 
 	/**
 	 * @var \view\Login
@@ -41,14 +45,12 @@ class Application {
 		$this->loginController = new \authorization\controller\Login(
 														$this->loginView, 
 														$this->navigationView);
-
-		
 	}
 
 	/**
 	 * @return string HTML
 	 */
-	public function runApplication() {
+	public function run() {
 		$this->loginController->doToggleLogin();
 	
 		if ($this->loginController->isLoggedIn()) {
@@ -57,13 +59,22 @@ class Application {
 			if ($this->navigationView->userHome()) {
 				return $this->goHome($loggedInUserCredentials);
 
-			} else if ($this->navigationView->addQuestion()) {
+			} else if ($this->navigationView->addQuestion() ||
+						$this->navigationView->editQuestion()) {
 				return $this->addFormQuestion($loggedInUserCredentials);
 
 			} else if ($this->navigationView->createForm() ||
-						$this->navigationView->editForm()) {
-				
+						$this->navigationView->editForm()) {		
 				return $this->createForm($loggedInUserCredentials);
+
+			} else if ($this->navigationView->listForms()) {
+				return $this->displayForms($loggedInUserCredentials);
+
+			} else if ($this->navigationView->answerForm()) {
+				return $this->answerForm($loggedInUserCredentials);
+
+			} else if ($this->navigationView->viewResults()) {
+				return $this->viewResults($loggedInUserCredentials);
 			}
 
 			return $this->goHome($loggedInUserCredentials);
@@ -84,14 +95,13 @@ class Application {
 	private function goHome(\authorization\model\UserCredentials $user) {
 		$homeView = new \home\view\Home($this->navigationView);
 		$homeController = new \home\controller\Home($user, $homeView);
-		$homeController->runHome();
+		$homeController->run();
 		return $this->applicationView->getHomePage($homeView);
 	}
 
 	private function createForm(\authorization\model\UserCredentials $user) {
-		
 		$createFormController = new \form\controller\CreateForm($user, $this->navigationView);
-		$html = $createFormController->runCreateForm();
+		$html = $createFormController->run();
 		return $this->applicationView->getCreateFormPage($html);
 	}
 
@@ -101,7 +111,21 @@ class Application {
 		return $this->applicationView->getCreateQuestionPage($html);
 	}
 
-	private function displayForm(\authorization\model\UserCredentials $user) {
+	private function answerForm(\authorization\model\UserCredentials $user) {
+		$answerFormController = new \form\controller\AnswerForm($user, $this->navigationView);
+		$html = $answerFormController->run();
+		return $this->applicationView->getAnswerFormPage($html);
+	}
 
+	private function displayForms(\authorization\model\UserCredentials $user) {
+		$listFormsController = new \form\controller\ListForms($user, $this->navigationView);
+		$html = $listFormsController->run();
+		return $this->applicationView->getListFormsPage($html);
+	}
+
+	private function viewResults(\authorization\model\UserCredentials $user) {
+		$viewResultsController = new \form\controller\ViewResults($user, $this->navigationView);
+		$html = $viewResultsController->run();
+		return $this->applicationView->getFormResultPage($html);
 	}
 }

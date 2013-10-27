@@ -16,7 +16,7 @@ $application = new \application\controller\Application($pageView);
 
 
 
-$page = $application->runApplication();
+$page = $application->run();
 
 $dbConnection->close();
 

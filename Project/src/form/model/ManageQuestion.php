@@ -30,4 +30,16 @@ class ManageQuestion {
 		}
 	}
 
+	public function userOwnsForm($formId) {
+		$this->formDAL->userOwnsForm($formId);
+	}
+
+	public function questionBelongsToForm($fId, $qId) {
+
+	}
+
+	public function getQuestion($qId) {
+		return $this->formDAL->getQuestionById($qId);
+	}
+
 }

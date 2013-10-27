@@ -17,86 +17,111 @@ class CreateQuestion implements \form\model\FormObserver {
 
 	private static $questionDescriptionPOST = "View::Question::Description";
 
+	private static $answerTypePOST = "at";
+
+	private static $answerTitlePOST = "as"; 
+
 	public function __construct(\application\view\Navigation $navigationView) {
 		$this->navigationView = $navigationView;
-	}
-
-	public function getHTML() {
-		$id = $this->getFormId();
-		$html = "
-			<form action='?" . $this->navigationView->getForm() . "=$id&" . $this->navigationView->getCreateForm() . "&". $this->navigationView->getQuestion() . "' method='post' enctype='multipart/form-data' class='form-signin'>
-				<fieldset>
-					<legend class='form-signin-heading'>Add a question</legend>
-					
-					<label for='titleID'>Question:</label>
-					<input type='text' name='" . self::$questionTitlePOST . "' id='titleID' class='form-control' placeholder='Title' autofocus>
-					
-					<label for='descriptionId'>Description (Optional):</label>
-					<textarea name='" . self::$questionDescriptionPOST . "' id='descriptionId' class='form-control' placeholder='Description'></textarea>
-
-					<h3>Answers</h3>
-
-					<div class='input-group'>
-     					<span class='input-group-addon'>
-        					<select id='at1' name='at1' class='form-control' style='width: 100px;'>
-        						<option disabled>Type</option>
-								<option value='radio'>Radio</option>
-							</select>
-      					</span>
-      					<input type='text' class='form-control' placeholder='Value' id='as1' name='as1' >
-    				</div><!-- /input-group -->
-
-    				<div class='input-group'>
-     					<span class='input-group-addon'>
-        					<select id='at2' name='at2' class='form-control' style='width: 100px;'>
-        						<option disabled>Type</option>
-								<option value='radio'>Radio</option>
-							</select>
-      					</span>
-      					<input type='text' class='form-control' placeholder='Value' id='as2' name='as2' >
-    				</div><!-- /input-group -->
-
-    				<div class='input-group'>
-     					<span class='input-group-addon'>
-        					<select id='at3' name='at3' class='form-control' style='width: 100px;'>
-        						<option disabled>Type</option>
-								<option value='radio'>Radio</option>
-							</select>
-      					</span>
-      					<input type='text' class='form-control' placeholder='Value' id='as3' name='as3' >
-    				</div><!-- /input-group -->
-
-				
-					<input type='submit' value='Add Question' class='btn btn-lg btn-primary btn-block'>
-				</fieldset>
-			</form>";
-
-		return $html;
 	}
 
 	/**
 	 * @return boolean
 	 */
-	public function isCreating() {
+	public function isSaving() {
 		return strtolower($_SERVER['REQUEST_METHOD']) == "post";
 	}
 
 	public function getQuestionCredentials() {
 		$title = $this->getTitle();
 		$description = $this->getDescription();
-		$qCred =  \form\model\QuestionCredentials::createFormBasic($title, $description);
-		return $this->getAnswers($qCred);
+		$aCred;
+		try {
+			$qId = $this->getQuestionId();
+			$qCred =  \form\model\QuestionCredentials::createFormFromDB($title, $description, $qId);
+		} catch (Exception $e) {
+			$qCred =  \form\model\QuestionCredentials::createFormBasic($title, $description);
+		}
+		
+		$answers = $this->getAnswers();
+		$qCred->addAnswers($answers);
+		return $qCred;
 	}
 
-	private function getAnswers($qCred) {
+	public function getEditHTML(\form\model\QuestionCredentials $question) {
+		$html = "";
+
+		$html .= $this->getFormHead($question);
+
+		foreach ($question->getAnswers() as $answer) {
+			$title = $answer->getTitle();
+			$type = $answer->getType();
+			$id = $answer->getId();
+			$html .= $this->getAnswerHTML($type, $title, $id);
+		}
+
+		$html .= $this->getFormFooter(true);
+		return $html;
+
+	}
+
+	public function getHTML() {
+		$html = $this->getFormHead();
+		
+		if ($this->isSaving()) {
+			$html .= $this->getAnswersHTML();
+		} else {
+			$html .= "
+						<div class='input-group'>
+     						<span class='input-group-addon'>
+        						<select id='at1' name='at1' class='form-control' style='width: 100px;'>
+        							<option disabled>Type</option>
+        							<option>Radio</option>
+        							<option>Text</option>
+								</select>
+      						</span>
+      						<input type='text' class='form-control' placeholder='Value' id='as1' name='as1' >
+    					</div><!-- /input-group -->
+
+    						<div class='input-group'>
+     						<span class='input-group-addon'>
+        						<select id='at2' name='at2' class='form-control' style='width: 100px;'>
+        							<option disabled>Type</option>
+        							<option>Radio</option>
+        							<option>Text</option>
+								</select>
+      						</span>
+      						<input type='text' class='form-control' placeholder='Value' id='as2' name='as2' >
+    					</div><!-- /input-group -->
+
+    						<div class='input-group'>
+     						<span class='input-group-addon'>
+        						<select id='at3' name='at3' class='form-control' style='width: 100px;'>
+        							<option disabled>Type</option>
+        							<option>Radio</option>
+        							<option>Text</option>
+								</select>
+      						</span>
+      						<input type='text' class='form-control' placeholder='Value' id='as3' name='as3' >
+    					</div><!-- /input-group -->";
+		}
+
+		$html .= $this->getFormFooter();
+		return $html;
+	}
+
+	private function getAnswersHTML() {
+		$html = "";
 		$i = 1;
+		$at = self::$answerTypePOST;
+		$as = self::$answerTitlePOST;
+
 		while (true) {
 			try {
-				if (isset($_POST['at' . $i])) {
-					$type = $_POST['at' . $i];
-					$title = $_POST['as' . $i];
-					$answer = \form\model\AnswerCredentials::createFormBasic($title, $type, $i);
-					$qCred->addAnswer($answer);
+				if (isset($_POST[$at . $i]) && isset($_POST[$as . $i])) {
+					$type = \common\Filter::sanitizeString($_POST[$at . $i]);
+					$title = \common\Filter::sanitizeString($_POST[$as . $i]);
+					$html .= $this->getAnswerHTML($type, $title, $i);
 					$i++;
 				} else {
 					break;
@@ -105,11 +130,141 @@ class CreateQuestion implements \form\model\FormObserver {
 				break;
 			}
 		}
-		return $qCred;
+
+		return $html;
+	}
+
+	private function getAnswerHTML($type, $title, $i) {
+		$html;
+		$selectOptions = $this->getSelectOptions($type);
+		try {
+			\form\model\AnswerCredentials::createFormBasic($title, $type, $i);
+			$html = "<div class='input-group'>";				
+		} catch (\Exception $e) {
+			$html = "<div class='input-group has-error'>";	
+		}
+		$html .= "<span class='input-group-addon'>
+        			<select id='at$i' name='at$i' class='form-control' style='width: 100px;'>
+        				$selectOptions
+					</select>
+      			</span>
+      			<input type='text' value='$title' class='form-control' placeholder='Value' id='as$i' name='as$i' >
+    		</div><!-- /input-group -->";
+    	return $html;
+	}
+
+	private function getSelectOptions($type) {
+		$types = array("radio", "text");
+		$html = "";
+		$html .= "<option disabled>Type</option>";
+		foreach ($types as $value) {
+			if ($type === $value) {
+				$html .= "<option selected='true'>$value</option>";
+				continue;
+			}
+			$html .= "<option>$value</option>";
+		}
+		return $html;
+	}
+
+	private function getFormHead($question = null) {
+		$id;
+		$title;
+		$description;
+		$formLink;
+		if ($question !== null) {
+			$id = $this->getFormId();
+			$title = $question->getTitle();
+			$description = $question->getDescription();
+			$formLink = $this->navigationView->getEditQuestionLink($this->getFormId(), $this->getQuestionId());
+		} else {
+			$id = $this->getFormId();
+			$title = $this->getTitle();
+			$description = $this->getDescription();
+			$formLink = $this->navigationView->getAddQuestionLink($this->getFormId());
+		}
+
+		$html = "
+			<form role='form' action='$formLink' method='post' enctype='multipart/form-data'>
+				<fieldset>
+					<legend>Add a question</legend>
+					
+					<div class='form-group'>
+						<label for='titleID'>Question:</label>
+						<input type='text' value='$title' name='" . self::$questionTitlePOST . "' id='titleID' class='form-control' placeholder='Question' autofocus>
+					</div>
+
+					<div class='form-group'>
+						<label for='descriptionId'>Description (Optional):</label>
+						<textarea name='" . self::$questionDescriptionPOST . "' id='descriptionId' class='form-control' placeholder='Description'>$description</textarea>
+					</div>
+				</fieldset>
+				<fieldset>
+					<legend>Answers</legend>";
+		return $html;
+	}
+
+	private function getFormFooter($edit = false) {
+		$submitText;
+		if ($edit) {
+			$submitText = "Save Changes";
+		} else {
+			$submitText = "Add Question";
+		}	
+		$formLink = $this->navigationView->getGoToEditFormLink($this->getFormId());
+		return "	
+				</fieldset>
+				<input type='submit' value='$submitText' class='btn btn-success'>
+				<a href='$formLink' class='btn btn-warning'>Cancel</a>
+			</form>";
+	}
+
+	private function getAnswers() {
+		$answers = array();
+		$i = 1;
+		while (true) {
+			try {
+				if (isset($_POST['at' . $i])) {
+					$type = \common\Filter::sanitizeString($_POST['at' . $i]);
+					$title = \common\Filter::sanitizeString($_POST['as' . $i]);
+					$answer = \form\model\AnswerCredentials::createFormBasic($title, $type, $i);
+					$answers[] = $answer;
+					$i++;
+				} else {
+					break;
+				}
+			} catch (\Exception $e) {
+				break;
+			}
+		}
+		return $answers;
+	}
+
+	private function getTitle() {
+		if (isset($_POST[self::$questionTitlePOST]))
+			return \Common\Filter::sanitizeString($_POST[self::$questionTitlePOST]);
+		else
+			return "";
+	}
+
+	private function getDescription() {
+		if (isset($_POST[self::$questionDescriptionPOST]))
+			return \Common\Filter::sanitizeString($_POST[self::$questionDescriptionPOST]);
+		else
+			return "";
 	}
 
 	public function getFormId() {
 		$idGET = $this->navigationView->getForm();
+		if (empty($_GET[$idGET]))
+			throw new \Exception('No form id in url');
+		return $_GET[$idGET];
+	}
+
+	public function getQuestionId() {
+		$idGET = $this->navigationView->getQuestion();
+		if (empty($_GET[$idGET]))
+			throw new \Exception('No question id in url');
 		return $_GET[$idGET];
 	}
 
@@ -132,44 +287,4 @@ class CreateQuestion implements \form\model\FormObserver {
 	public function getFormOk() {
 		
 	}
-
-	private function getTitle() {
-		if (isset($_POST[self::$questionTitlePOST]))
-			return \Common\Filter::sanitizeString($_POST[self::$questionTitlePOST]);
-		else
-			return "";
-	}
-
-	private function getDescription() {
-		if (isset($_POST[self::$questionDescriptionPOST]))
-			return \Common\Filter::sanitizeString($_POST[self::$questionDescriptionPOST]);
-		else
-			return "";
-	}
 }
-
-/*
-<div class='input-group'>
-     					<span class='input-group-addon'>
-        					<input type='radio' name='answer' value='r0' id='r0'>
-      					</span>
-      					<label for='r0' class='form-control'>Passed</label>
-    				</div><!-- /input-group -->
-
-    				<div class='input-group'>
-     					<span class='input-group-addon'>
-        					<input type='radio' name='answer' value='r1' id='r1'>
-      					</span>
-      					<label for='1' class='form-control'>Failed</label>
-    				</div><!-- /input-group -->
-
-    				<div class='input-group'>
-     					<span class='input-group-addon'>
-        					<input type='radio' name='answer' value='2'>
-      					</span>
-      					<input type='text' class='form-control' placeholder='Other'>
-    				</div><!-- /input-group -->
-
-    				<label for='optionalText'></label>
-    				<textarea class='form-control' rows='3' name='optionalText' id='optionalText'></textarea>
- */

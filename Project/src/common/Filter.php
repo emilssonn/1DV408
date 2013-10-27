@@ -22,10 +22,7 @@ class Filter {
 	 * @return string
 	 */
 	public static function trimString($string) {
-		$original = $string;
-		$string = ltrim($string);
-		$string = rtrim($string);
-		return $string;
+		return trim($string);
 	}
 	
 	/**

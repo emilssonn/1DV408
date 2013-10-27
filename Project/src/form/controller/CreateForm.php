@@ -5,8 +5,9 @@ namespace form\controller;
 require_once("./src/form/model/ManageForm.php");
 require_once("./src/form/view/CreateQuestion.php");
 require_once("./src/form/controller/CreateQuestion.php");
+require_once("./src/common/controller/IController.php");
 
-class CreateForm {
+class CreateForm implements \common\controller\IController {
 
 	private $createFormView;
 
@@ -21,7 +22,7 @@ class CreateForm {
 		$this->manageForm = new \form\model\ManageForm($this->user, $this->createFormView);
 	}
 
-	public function runCreateForm() {
+	public function run() {
 		if ($this->createFormView->isCreating() ) {
 			try {
 				$formCred = $this->createFormView->getFormCredentials();
@@ -29,11 +30,12 @@ class CreateForm {
 				return $this->createFormView->getHTML();
 			} catch (\Exception $e) {
 				$this->createFormView->addFormFailed();
+				return $this->createFormView->getHTML();
 			}
 		} else if ($this->createFormView->isEditing()) {
 			try {
 				$formId = $this->createFormView->getFormId();
-				$form = $this->manageForm->getForm($formId);
+				$form = $this->manageForm->getFullForm($formId);
 				return $this->createFormView->getHTML($form);
 			} catch (\Exception $e) {
 				

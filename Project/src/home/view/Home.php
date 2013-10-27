@@ -10,8 +10,7 @@ class Home {
 	}
 
 	public function getHTML() {
-		$html = "
-				<a href='?form&create'>Create new form</a>";
+		$html = "";
 
 		return $html;
 	}

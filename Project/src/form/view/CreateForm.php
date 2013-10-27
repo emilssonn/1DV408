@@ -26,22 +26,29 @@ class CreateForm implements \form\model\FormObserver {
 	public function getHTML(\form\model\Form $form = null) {
 		$html;
 		if ($this->createFormHTML) {
-
+			$homeLink = $this->navigationView->getGoToHomeLink();
 			$html = "
-				<form action='?" . $this->navigationView->getForm() . "&" . $this->navigationView->getCreateForm() . "' method='post' enctype='multipart/form-data' class='form-signin'>
+				<form role='form' action='" . $this->navigationView->getGoToCreateFormLink() . "' method='post' enctype='multipart/form-data'>
 					<fieldset>
-						<legend class='form-signin-heading'>Create new form</legend>
+						<legend>Create new form</legend>
 						
-						<label for='titleID'>Title:</label>
-						<input type='text' name='" . self::$formTitlePOST . "' id='titleID' class='form-control' placeholder='Title' autofocus>
-						
-						<label for='descriptionId'>Description:</label>
-						<textarea name='" . self::$formDescriptionPOST . "' id='descriptionId' class='form-control' placeholder='Description'></textarea>
-							
-						<label for='endDateId'>End date:</label>
-						<input type='text' name='" . self::$formEndDatePOST . "' id='endDateId' class='form-control' placeholder='End date'>
+						<div class='form-group'>
+							<label for='titleID'>Title:</label>
+							<input type='text' name='" . self::$formTitlePOST . "' id='titleID' class='form-control' placeholder='Title' autofocus>
+						</div>
 
-						<input type='submit' value='Create form' class='btn btn-lg btn-primary btn-block'>
+						<div class='form-group'>
+							<label for='descriptionId'>Description:</label>
+							<textarea name='" . self::$formDescriptionPOST . "' id='descriptionId' class='form-control' placeholder='Description'></textarea>
+						</div>
+
+						<div class='form-group'>	
+							<label for='endDateId'>End date:</label>
+							<input type='text' name='" . self::$formEndDatePOST . "' id='endDateId' class='form-control' placeholder='End date'>
+						</div>
+
+						<input type='submit' value='Create form' class='btn btn-success'>
+						<a href='$homeLink' class='btn btn-warning'>Cancel</a>
 					</fieldset>
 				</form>";
 		} else {
@@ -57,12 +64,42 @@ class CreateForm implements \form\model\FormObserver {
 		$description = $formCred->getDescription();
 		$endDate = $formCred->getEndDate();
 		$id = $formCred->getId();
+		$published = $formCred->isPublished();
+
 		$html = "
-				<h2>$title</h2>
-				<p>$description</p>
-				<p>$endDate</p>
-				<a href='?" . $this->navigationView->getForm() . "=$id&" . $this->navigationView->getCreateForm() . "&". $this->navigationView->getQuestion() . "' class='btn btn-lg btn-primary btn-block'>Add Question</a>
+				<h3>Title</h3>
+					$title
+				<h4>Description</h4>
+					$description
+				<h4>End date</h4>
+					$endDate
 				";
+
+		if ($published) {
+			$html .= "<p>Published: Yes</p>";
+		} else {
+			$html .= "<p>Published: No</p>";
+		}
+		
+		$html .= "
+			<a href='" . $this->navigationView->getAddQuestionLink($id) . "' class='btn btn-primary'>Add Question</a>
+			<h4>Questions</h4>";
+
+		$questions = $form->getQuestions();
+		if (count($questions) > 0) {
+			foreach ($form->getQuestions() as $question) {
+				$qTitle = $question->getTitle();
+				$qDescription = $question->getDescription();
+				$qId = $question->getId();
+				$html .= "
+					<h5>$qTitle</h5>
+					<p>$qDescription</p>
+					<a href='" . $this->navigationView->getEditQuestionLink($id, $qId) . "' class='btn btn-primary'>Edit</a>";
+			}
+		} else {
+			$html .= "<p>No Questions</p>";
+		}
+		
 
 		return $html;
 	}
@@ -80,7 +117,6 @@ class CreateForm implements \form\model\FormObserver {
 	}
 
 	public function getFormCredentials() {
-
 		$title = $this->getTitle();
 		$description = $this->getDescription();
 		$endDate = $this->getEndDate();

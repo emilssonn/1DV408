@@ -30,6 +30,12 @@ class Navigation {
 
 	private static $editFormGET = "edit";
 
+	private static $listFormsGET = "list";
+
+	private static $myFormsGET = "my";
+
+	private static $formResultGET ="result";
+
 
 	/**
 	 * @return string
@@ -84,6 +90,61 @@ class Navigation {
 		return "<a href='?$register'>Sign up</a>";
 	}
 
+	public function getGoToFormLink($id) {
+		$form = self::$formGET;
+		$show = self::$showFormGET;
+		return "?$form=$id&$show";
+	}
+
+	public function getGoToEditFormLink($id) {
+		$form = self::$formGET;
+		$edit = self::$editFormGET;
+		return "?$form=$id&$edit";
+	}
+
+	public function getGoToCreateFormLink() {
+		$form = self::$formGET;
+		$create = self::$createFormGET;
+		return "?$form&$create";
+	}
+
+	public function getGoToHomeLink() {
+		return "?home";
+	}
+
+	public function getListFormsLink() {
+		$list = self::$listFormsGET;
+		$form = self::$formGET;
+		return "?$form&$list";
+	}
+
+	public function getListMyFormsLink() {
+		$list = self::$listFormsGET;
+		$form = self::$formGET;
+		$my = self::$myFormsGET;
+		return "?$form&$list&$my";
+	}
+
+	public function getFormResultLink($id) {
+		$form = self::$formGET;
+		$result = self::$formResultGET;
+		return "?$form=$id&$result";
+	}
+
+	public function getAddQuestionLink($fid) {
+		$form = self::$formGET;
+		$create = self::$createFormGET;
+		$add = self::$addQuestionGET;
+		return "?$form=$fid&$create&$add";
+	}
+
+	public function getEditQuestionLink($fId, $qId) {
+		$form = self::$formGET;
+		$edit = self::$editFormGET;
+		$add = self::$addQuestionGET;
+		return "?$form=$fId&$edit&$add=$qId";
+	}
+
 	/**
 	 * @return boolean
 	 */
@@ -109,8 +170,24 @@ class Navigation {
 		return isset($_GET[self::$formGET]) && isset($_GET[self::$createFormGET]) && isset($_GET[self::$addQuestionGET]);
 	}
 
-	public function showForm() {
+	public function editQuestion() {
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$editFormGET]) && isset($_GET[self::$addQuestionGET]);
+	}
+
+	public function listForms() {
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$listFormsGET]);
+	}
+
+	public function listMyForms() {
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$listFormsGET]) && isset($_GET[self::$myFormsGET]);
+	}
+
+	public function answerForm() {
 		return isset($_GET[self::$formGET]) && isset($_GET[self::$showFormGET]);
+	}
+
+	public function viewResults() {
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$formResultGET]);
 	}
 
 	public function goToHome() {

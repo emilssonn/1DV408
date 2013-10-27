@@ -12,7 +12,15 @@ class QuestionCredentials {
 
 	private $answers = array();
 
+	private static $minStringLength = 5;
+
+	private static $maxTitleLength = 50;
+
+	private static $maxDescription = 200;
+
 	private function __construct($title, $description, $id = null) {
+		$this->validateTitle($title);
+		$this->validateDescription($description);
 		$this->title = $title;
 		$this->description = $description;
 		$this->id = $id;
@@ -50,8 +58,26 @@ class QuestionCredentials {
 		$this->answers[] = $answer;
 	}
 
+	public function addAnswers($answers) {
+		$this->answers = array_merge($this->answers, $answers);
+	}
+
 	public function getAnswers() {
 		return $this->answers;
+	}
+
+	private function validateTitle($title) {
+		if (strlen($title) < self::$minStringLength ||
+			strlen($title) > self::$maxTitleLength) {
+			throw new \Exception('Question title not valid');
+		}
+	}
+
+	private function validateDescription($description) {
+		if (strlen($description) < self::$minStringLength ||
+			strlen($description) > self::$maxDescription) {
+			throw new \Exception('Question description not valid');
+		}
 	}
 	
 	

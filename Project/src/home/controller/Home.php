@@ -2,7 +2,9 @@
 
 namespace home\controller;
 
-class Home {
+require_once("./src/common/controller/IController.php");
+
+class Home implements \common\controller\IController {
 	
 	private $homeView;
 
@@ -14,7 +16,7 @@ class Home {
 		$this->user = $user;
 	}
 
-	public function runHome() {
+	public function run() {
 
 	}
 }

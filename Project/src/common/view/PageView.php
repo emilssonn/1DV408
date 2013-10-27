@@ -37,7 +37,51 @@ class PageView {
     						$headCss
     					</head>
     					<body>
-    						$page->body
+    						<div class='navbar navbar-fixed-top navbar-default' role='navigation'>
+
+						        <div class='navbar-header'>
+
+						          <button type='button' class='navbar-toggle' data-toggle='collapse' data-target='.navbar-collapse'>
+						            <span class='icon-bar'></span>
+						            <span class='icon-bar'></span>
+						            <span class='icon-bar'></span>
+						          </button>
+
+						          <a class='navbar-brand' href='#'>Project name</a>
+						          <button type='button' class='navbar-toggle' id='menu-toggle'>
+						            <span class='icon-bar'></span>
+						            <span class='icon-bar'></span>
+						            <span class='icon-bar'></span>
+						          </button>
+
+						          
+						        </div>
+
+						        <div class='collapse navbar-collapse'>
+
+						          <ul class='nav navbar-nav navbar-right'>
+						            <li class='active'><a href='#'>Home</a></li>
+						            <li><a href='#about'>About</a></li>
+						            <li><a href='#contact'>Contact</a></li>
+						          </ul>
+						        </div><!-- /.nav-collapse -->
+						    </div><!-- /.navbar -->
+
+						    <div id='wrapper'>
+								$page->menu
+								
+								<!-- Page content -->
+      							<div id='page-content-wrapper'>
+        							
+        							<!-- Keep all page content within the page-content inset div! -->
+       								<div class='page-content inset'>
+          								<div class='row'>
+          									$page->body
+           								</div>
+        							</div>
+     							</div>
+     						</div>
+
 	    					<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	    					<script src='//code.jquery.com/jquery.js'></script>
 	    					<script src='javascript/vendor/bootstrap.min.js'></script>

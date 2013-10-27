@@ -36,16 +36,18 @@ final class DbConnection {
 		$this->mysqli->close();
 	}
 
-	public function runSql($sql, $paramsArray, $paramsTypeString) {
+	public function runSql($sql, $paramsArray = null, $paramsTypeString = null) {
 		$statement = $this->mysqli->prepare($sql);
 		if ($statement === FALSE) {
 			throw new \Exception("prepare of $sql failed " . $this->mysqli->error);
 		}
 
-		$params = array_merge(array($paramsTypeString), $paramsArray);
+		if ($paramsArray !== null) {
+			$params = array_merge(array($paramsTypeString), $paramsArray);
 
-		if (call_user_func_array(array($statement, "bind_param"), $this->refValues($params)) === FALSE) {
-			throw new \Exception("bind_param of $sql failed " . $statement->error);
+			if (call_user_func_array(array($statement, "bind_param"), $this->refValues($params)) === FALSE) {
+				throw new \Exception("bind_param of $sql failed " . $statement->error);
+			}
 		}
 
 		if ($statement->execute() === FALSE) {

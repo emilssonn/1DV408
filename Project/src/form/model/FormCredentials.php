@@ -18,7 +18,17 @@ class FormCredentials {
 
 	private $authorId;
 
-	private function __construct($title, $description, $endDate, $authorId = null, $id = null, $createdDate = null, $lastUpdateDate = null) {
+	private $isPublished;
+
+	private static $minStringLength = 5;
+
+	private static $maxTitleLength = 50;
+
+	private static $maxDescription = 200;
+
+	private function __construct($title, $description, $endDate, $authorId = null, $id = null, $createdDate = null, $lastUpdateDate = null, $isPublished = false) {
+		$this->validateTitle($title);
+		$this->validateDescription($description);
 		$this->title = $title;
 		$this->description = $description;
 		$this->endDate = $endDate;
@@ -26,6 +36,7 @@ class FormCredentials {
 		$this->createdDate = $createdDate;
 		$this->lastUpdateDate = $lastUpdateDate;
 		$this->id = $id;
+		$this->isPublished = $isPublished;
 	}
 
 	public static function createFormBasic($title, $description, $endDate) {
@@ -56,11 +67,41 @@ class FormCredentials {
 		return $this->id;
 	}
 
+	public function getCreatedDate() {
+		return $this->createdDate;
+	}
+
+	public function getLastUpdatedDate() {
+		return $this->lastUpdateDate;
+	}
+
+	public function getAuthorId() {
+		return $this->authorId;
+	}
+
 	public function setId($id) {
 		if ($this->id != null) {
 			throw new \Exception('Id already set');
 		} else {
 			$this->id = $id;
+		}
+	}
+
+	public function isPublished() {
+		return $this->isPublished;
+	}
+
+	private function validateTitle($title) {
+		if (strlen($title) < self::$minStringLength ||
+			strlen($title) > self::$maxTitleLength) {
+			throw new \Exception('Form title not valid');
+		}
+	}
+
+	private function validateDescription($description) {
+		if (strlen($description) < self::$minStringLength ||
+			strlen($description) > self::$maxDescription) {
+			throw new \Exception('Form description not valid');
 		}
 	}
 	

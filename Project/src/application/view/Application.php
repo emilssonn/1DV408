@@ -84,6 +84,9 @@ class Application {
 	}
 
 	public function getHomePage(\home\view\Home $homeView) {
+		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
+		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+		$menu = $this->getMenu();
 		$html = $this->getHeader(true);
 		$homePage = $homeView->getHTML();
 
@@ -93,33 +96,87 @@ class Application {
 
 		$html .= $this->getFooter();
 
-		return new \common\view\Page("Home", $html);
+		return new \common\view\Page("Home", $html, $menu);
 	}
 
 	public function getCreateFormPage($createFormHTML) {
+		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
+		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+		$menu = $this->getMenu();
 		$html = $this->getHeader(true);
 
 		$html .= "
-				<div class='container'>
-					$createFormHTML
-				</div>";
+			<div class='col-xs-12 col-sm-9 col-md-6'>
+				$createFormHTML
+			</div>";
 
 		$html .= $this->getFooter();
 
-		return new \common\view\Page("Create new form", $html);
+		return new \common\view\Page("Create new form", $html, $menu);
 	}
 
 	public function getCreateQuestionPage($createQuestionHTML) {
+		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
+		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+		$menu = $this->getMenu();
 		$html = $this->getHeader(true);
 
 		$html .= "
-				<div class='container'>
-					$createQuestionHTML
-				</div>";
+			<div class='col-xs-12 col-sm-9 col-md-6'>
+				$createQuestionHTML
+			</div>";
 
 		$html .= $this->getFooter();
 
-		return new \common\view\Page("Add a question", $html);
+		return new \common\view\Page("Add a question", $html, $menu);
+	}
+
+	public function getListFormsPage($listFormsHTML) {
+		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
+		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+		$menu = $this->getMenu();
+		$html = $this->getHeader(true);
+
+		$html .= "
+			<div class='col-xs-12 col-sm-12 col-md-12'>
+				$listFormsHTML
+			</div>";
+
+		$html .= $this->getFooter();
+
+		return new \common\view\Page("All Forms", $html, $menu);
+	}
+
+	public function getAnswerFormPage($answerFormHTML) {
+		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
+		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+		$menu = $this->getMenu();
+		$html = $this->getHeader(true);
+
+		$html .= "
+			<div class='col-xs-12 col-sm-9 col-md-6'>
+				$answerFormHTML
+			</div>";
+
+		$html .= $this->getFooter();
+
+		return new \common\view\Page("Answer Form", $html, $menu);
+	}
+
+	public function getFormResultPage($formResultHTML) {
+		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
+		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+		$menu = $this->getMenu();
+		$html = $this->getHeader(true);
+
+		$html .= "
+			<div class='col-xs-12 col-sm-9 col-md-6'>
+				$formResultHTML
+			</div>";
+
+		$html .= $this->getFooter();
+
+		return new \common\view\Page("Form Results", $html, $menu);
 	}
 
 	/**
@@ -138,4 +195,25 @@ class Application {
 	private function getFooter() {
 		return "";
 	}
+
+	private function getMenu() {
+		$home = $this->navigationView->getGoToHomeLink();
+		$create = $this->navigationView->getGoToCreateFormLink();
+		$listForms = $this->navigationView->getListFormsLink();
+		$listMyForms = $this->navigationView->getListMyFormsLink();
+		return "
+			<div id='sidebar-wrapper'>
+        		<ul class='sidebar-nav'>
+          			<li class='sidebar-brand'><a href='#'>Start Bootstrap</a></li>
+          			<li><a href='$home'>Home</a></li>
+			        <li><a href='$create'>Create New Form</a></li>
+			        <li><a href='$listMyForms'>Manage My Forms</a></li>
+			        <li><a href='$listForms'>Find Forms</a></li>
+			        <li><a href='#'>About</a></li>
+			        <li><a href='#'>Services</a></li>
+			        <li><a href='#'>Contact</a></li>
+        		</ul>
+      		</div>";
+	}
+
 }

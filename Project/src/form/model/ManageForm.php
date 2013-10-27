@@ -34,6 +34,14 @@ class ManageForm {
 		}
 	}
 
+	public function saveAnswers(\form\model\Form $form, $answerViewCredentialsArray) {
+		$this->formDAL->insertAnsweredForm($form, $answerViewCredentialsArray);
+	}
+
+	public function userOwnsForm($formId) {
+		$this->formDAL->userOwnsForm($formId);
+	}
+
 	public function getForm($id) {
 		try {
 			$form = $this->formDAL->getFormById($id);
@@ -42,6 +50,30 @@ class ManageForm {
 		} catch (\Exception $e) {
 			
 		}
+	}
+
+	public function getFullForm($id) {
+		$form = $this->formDAL->getFullForm($id);
+		$this->formObserver->getFormOk();
+		return $form;
+	}
+
+	public function getForms() {
+		try {
+			$forms = $this->formDAL->getForms();
+			return $forms;
+		} catch (\Exception $e) {
+
+		}
+	}
+
+	public function getFormsByUser() {
+		$forms = $this->formDAL->getForms(false);
+		return $forms;
+	}
+
+	public function getFormResults($id) {
+		return $this->formDAL->getFormResult($id);
 	}
 
 }

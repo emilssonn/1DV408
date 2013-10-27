@@ -13,9 +13,11 @@ class Page {
 	//Properties of the document
 	public $title = "";
 	public $body = "";
+	public $menu = "";
 
-	public function __construct($title, $body) {
+	public function __construct($title, $body, $menu = "") {
 		$this->title = $title;
+		$this->menu = $menu;
 		$this->body = $body;
 	}
 
