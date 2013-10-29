@@ -5,15 +5,11 @@ namespace application\view;
 class Navigation {
 	
 	/**
-	 * Name in URL for login
+	 * Names in URL
 	 * @var string
 	 */
 	private static $loginGET = "login";
 
-	/**
-	 * Name in URL for logout
-	 * @var string
-	 */
 	private static $logoutGET = "logout";
 
 	private static $registerGET = "register";
@@ -34,25 +30,15 @@ class Navigation {
 
 	private static $myFormsGET = "my";
 
-	private static $formResultGET ="result";
+	private static $formResultGET = "result";
 
+	private static $mySubmittedFormsGET = "submitted"; 
 
 	/**
 	 * @return string
 	 */
 	public function getLogin() {
 		return self::$loginGET;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getLogOut() {
-		return self::$logoutGET;
-	}
-
-	public function getRegister() {
-		return self::$registerGET;
 	}
 
 	public function getForm() {
@@ -63,14 +49,21 @@ class Navigation {
 		return self::$showFormGET;
 	}
 
-	public function getCreateForm() {
-		return self::$createFormGET;
-	}
-
 	public function getQuestion() {
 		return self::$addQuestionGET;
 	}
 
+	public function getLogOut() {
+		return self::$logoutGET;
+	}
+
+	public function getRegister() {
+		return self::$registerGET;
+	}
+
+	/**
+	 * @return [type] [description]
+	 */
 	public function loginWithReturnUrl() {
 		header("Location: ?login&ref=" . $_SERVER["QUERY_STRING"]);
 	}
@@ -78,22 +71,39 @@ class Navigation {
 	/**
 	 * @return String HTML
 	 */
-	public function getLogoutButton() {
-		return "<a href='?" . $this->getLogOut() . "'>Sign out</a>";
+	public function getLogoutLink() {
+		return "?" . self::$logoutGET;
 	}
 
 	/**
-	 * @return string HTML
+	 * @return string
 	 */
 	public function getRegisterLink() {
 		$register = $this->getRegister();
 		return "<a href='?$register'>Sign up</a>";
 	}
 
+	/**
+	 * @param  [type] $id [description]
+	 * @return [type]     [description]
+	 */
 	public function getGoToFormLink($id) {
 		$form = self::$formGET;
 		$show = self::$showFormGET;
 		return "?$form=$id&$show";
+	}
+
+	public function getShowSubmittedFormLink($formId, $userFormId) {
+		$form = self::$formGET;
+		$show = self::$showFormGET;
+		return "?$form=$formId&$show=$userFormId";
+	}
+
+	public function getEditSubmittedFormLink($formId, $userFormId) {
+		$form = self::$formGET;
+		$show = self::$showFormGET;
+		$edit = self::$editFormGET;
+		return "?$form=$formId&$show=$userFormId&$edit";
 	}
 
 	public function getGoToEditFormLink($id) {
@@ -145,6 +155,13 @@ class Navigation {
 		return "?$form=$fId&$edit&$add=$qId";
 	}
 
+	public function getListMySubmittedFormsLink() {
+		$list = self::$listFormsGET;
+		$form = self::$formGET;
+		$submitted = self::$mySubmittedFormsGET;
+		return "?$form&$list&$submitted";
+	}
+
 	/**
 	 * @return boolean
 	 */
@@ -163,7 +180,7 @@ class Navigation {
 
 	public function editForm() {
 		return isset($_GET[self::$formGET]) && 
-				isset($_GET[self::$editFormGET]);
+				isset($_GET[self::$editFormGET]) && !isset($_GET[self::$showFormGET]);
 	}
 
 	public function addQuestion() {
@@ -183,11 +200,20 @@ class Navigation {
 	}
 
 	public function answerForm() {
-		return isset($_GET[self::$formGET]) && isset($_GET[self::$showFormGET]);
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$showFormGET]) && !isset($_GET[self::$editFormGET]) && empty($_GET[self::$showFormGET]);
 	}
 
 	public function viewResults() {
 		return isset($_GET[self::$formGET]) && isset($_GET[self::$formResultGET]);
+	}
+
+	public function listMySubmittedForms() {
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$mySubmittedFormsGET]) && isset($_GET[self::$listFormsGET]);
+		
+	}
+
+	public function showMySubmittedForm() {
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$showFormGET]);
 	}
 
 	public function goToHome() {
@@ -205,6 +231,12 @@ class Navigation {
 		$form = self::$formGET;
 		$edit = self::$editFormGET;
 		header("Location: ?$form=$id&$edit");
+	}
+
+	public function goToShowSubmittedForm($formId, $userFormId) {
+		$form = self::$formGET;
+		$show = self::$showFormGET;
+		header("Location: ?$form=$formId&$show=$userFormId");
 	}
 
 }

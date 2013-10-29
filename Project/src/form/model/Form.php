@@ -31,4 +31,8 @@ class Form {
 	public function getQuestions() {
 		return $this->formQuestions;
 	}
+
+	public function isActive() {
+		return strtotime($this->formCredentials->getEndDate()) > time();
+	}
 }

@@ -2,43 +2,10 @@
 
 namespace form\view;
 
-require_once("./src/form/model/FormObserver.php");
+require_once("./src/form/view/SubmittedForm.php");
 require_once("./src/form/model/AnswerViewCredentials.php");
 
-class AnswerForm implements \form\model\FormObserver {
-
-	private $navigationView;
-
-	private $form;
-
-	public function __construct(\application\view\Navigation $navigationView) {
-		$this->navigationView = $navigationView;
-	}
-
-	public function isSubmitning() {
-		return $this->navigationView->answerForm() &&
-			strtolower($_SERVER['REQUEST_METHOD']) == "post";
-	}
-
-	public function getAnswers(\form\model\Form $form) {
-		$questions = $form->getQuestions();
-		$answers = array();
-
-		foreach ($questions as $key => $question) {
-			$qId = $question->getId();
-			$answers[] = $this->getAnswer($qId);
-		}
-		return $answers;
-	}
-
-	private function getAnswer($qId) {
-		if (isset($_POST["$qId"])) {
-			$answerId = $_POST["$qId"];
-			return new \form\model\AnswerViewCredentials($qId, $answerId);
-		} else {
-			throw new \Exception();
-		}
-	}
+class AnswerForm extends \form\view\SubmittedForm {
 
 	public function getHTML($form) {  
 		$this->form = $form;
@@ -65,13 +32,13 @@ class AnswerForm implements \form\model\FormObserver {
 
 	private function getFormFooter() {
 		$html;
-		$homeLink = $this->navigationView->getGoToHomeLink();
+		$listLink = $this->navigationView->getListFormsLink();
 		
 		$html = "
-					<input type='submit' value='Submit' class='btn btn-lg btn-primary btn-block'>
 				</fieldset>
-			</form>
-			<a href='$homeLink'>Cancel</a>";
+				<input type='submit' value='Submit' class='btn btn-primary'>
+				<a href='$listLink' class='btn btn-warning'>Cancel</a>
+			</form>";
 
 		return $html;
 	}
@@ -85,9 +52,9 @@ class AnswerForm implements \form\model\FormObserver {
 			$description = $question->getDescription();
 			$id = $question->getId();
 			$answers = $question->getAnswers();
-
+			$nr = $key + 1;
 			$html .= "
-					<h4>$title</h4>
+					<h4>$nr: $title</h4>
 					<p>$description</p>";
 
 			$html .= $this->getAnswersHTML($answers, $id);
@@ -110,6 +77,7 @@ class AnswerForm implements \form\model\FormObserver {
 						</div>";
 			}
 		}
+
 		foreach ($answers as $key => $answer) {
 			$id = $answer->getId();
 			$title = $answer->getTitle();
@@ -129,29 +97,6 @@ class AnswerForm implements \form\model\FormObserver {
     			</div><!-- /input-group -->";
  		}
  		return $html;
-	}				
-
-	public function getFormId() {
-		$idGET = $this->navigationView->getForm();
-		if (empty($_GET[$idGET]))
-			throw new \Exception('No form id in url');
-		return $_GET[$idGET];
-	}
-
-	public function addFormOk(\form\model\FormCredentials $formCred) {
-
-	}
-
-	public function addFormFailed() {
-
-	}
-
-	public function getFormOk() {
-
-	}
-
-	public function getFormFailed() {
-
-	}
+	}			
 
 }

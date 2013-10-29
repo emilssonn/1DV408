@@ -39,15 +39,15 @@ class FormCredentials {
 		$this->isPublished = $isPublished;
 	}
 
-	public static function createFormBasic($title, $description, $endDate) {
+	public static function createBasic($title, $description, $endDate) {
 		return new \form\model\FormCredentials($title, $description, $endDate);
 	}
 
-	public static function createFormFromDB($title, $description, $endDate, $authorId, $createdDate, $lastUpdateDate, $id) {
-		return new \form\model\FormCredentials($title, $description, $endDate, $authorId, $id, $createdDate, $lastUpdateDate);
+	public static function createFull($title, $description, $endDate, $authorId, $createdDate, $lastUpdateDate, $id, $published = false) {
+		return new \form\model\FormCredentials($title, $description, $endDate, $authorId, $id, $createdDate, $lastUpdateDate, $published);
 	}
 
-	public static function createFromDbSimple($title, $description, $endDate, $authorId, $id) {
+	public static function createSimple($title, $description, $endDate, $authorId, $id) {
 		return new \form\model\FormCredentials($title, $description, $endDate, $authorId, $id);
 	}
 

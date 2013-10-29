@@ -35,15 +35,18 @@ class CreateQuestion implements \form\model\FormObserver {
 	public function getQuestionCredentials() {
 		$title = $this->getTitle();
 		$description = $this->getDescription();
-		$aCred;
+		$qCred;
+		$answers;
+
 		try {
 			$qId = $this->getQuestionId();
-			$qCred =  \form\model\QuestionCredentials::createFormFromDB($title, $description, $qId);
-		} catch (Exception $e) {
-			$qCred =  \form\model\QuestionCredentials::createFormBasic($title, $description);
+			$qCred =  \form\model\QuestionCredentials::createFull($title, $description, $qId);
+			$answers = $this->getAnswers(true);
+		} catch (\Exception $e) {
+			$qCred =  \form\model\QuestionCredentials::createBasic($title, $description);
+			$answers = $this->getAnswers();
 		}
 		
-		$answers = $this->getAnswers();
 		$qCred->addAnswers($answers);
 		return $qCred;
 	}
@@ -112,43 +115,59 @@ class CreateQuestion implements \form\model\FormObserver {
 
 	private function getAnswersHTML() {
 		$html = "";
-		$i = 1;
-		$at = self::$answerTypePOST;
-		$as = self::$answerTitlePOST;
+		$values = $this->getAnswersValue();
 
-		while (true) {
-			try {
-				if (isset($_POST[$at . $i]) && isset($_POST[$as . $i])) {
-					$type = \common\Filter::sanitizeString($_POST[$at . $i]);
-					$title = \common\Filter::sanitizeString($_POST[$as . $i]);
-					$html .= $this->getAnswerHTML($type, $title, $i);
-					$i++;
-				} else {
-					break;
-				}
-			} catch (\Exception $e) {
-				break;
-			}
+		$i = 1;
+		foreach ($values as $key => $value) {
+			$type = \common\Filter::sanitizeString($value[0]);
+			$title = \common\Filter::sanitizeString($value[1]);
+			$html .= $this->getAnswerHTML($type, $title, $key);
+			$i++;
 		}
 
 		return $html;
 	}
 
+	private function getAnswersValue() {
+		$at = self::$answerTypePOST;
+		$as = self::$answerTitlePOST;
+		$values = array();
+
+		$asExp = '/^' . $as . '(\d*)$/';
+		$atExp = '/^' . $at . '(\d*)$/';
+		
+		foreach($_POST as $key => $val) {
+			//as(Answer type(string) will always be first, if no client side hmtl editing have happend)
+    		if (preg_match($asExp, $key) || preg_match($atExp, $key)) {
+    			$key = (int)preg_replace('/\D/', '', $key);
+        		if (array_key_exists($key, $values)) {
+        			$values[$key][] = $val;
+        		} else {
+        			$values[$key] = array($val);
+        		}
+    		}
+		}
+
+		return $values;
+	}
+
 	private function getAnswerHTML($type, $title, $i) {
 		$html;
+		$at = self::$answerTypePOST;
+		$as = self::$answerTitlePOST;
 		$selectOptions = $this->getSelectOptions($type);
 		try {
-			\form\model\AnswerCredentials::createFormBasic($title, $type, $i);
+			\form\model\AnswerCredentials::createBasic($title, $type, $i);
 			$html = "<div class='input-group'>";				
 		} catch (\Exception $e) {
 			$html = "<div class='input-group has-error'>";	
 		}
 		$html .= "<span class='input-group-addon'>
-        			<select id='at$i' name='at$i' class='form-control' style='width: 100px;'>
+        			<select id='$at$i' name='$at$i' class='form-control' style='width: 100px;'>
         				$selectOptions
 					</select>
       			</span>
-      			<input type='text' value='$title' class='form-control' placeholder='Value' id='as$i' name='as$i' >
+      			<input type='text' value='$title' class='form-control' placeholder='Value' id='$as$i' name='$as$i' >
     		</div><!-- /input-group -->";
     	return $html;
 	}
@@ -172,22 +191,25 @@ class CreateQuestion implements \form\model\FormObserver {
 		$title;
 		$description;
 		$formLink;
+		$legendText;
 		if ($question !== null) {
 			$id = $this->getFormId();
 			$title = $question->getTitle();
 			$description = $question->getDescription();
-			$formLink = $this->navigationView->getEditQuestionLink($this->getFormId(), $this->getQuestionId());
+			$formLink = $this->navigationView->getEditQuestionLink($id, $this->getQuestionId());
+			$legendText = "Edit Question";
 		} else {
 			$id = $this->getFormId();
 			$title = $this->getTitle();
 			$description = $this->getDescription();
-			$formLink = $this->navigationView->getAddQuestionLink($this->getFormId());
+			$formLink = $this->navigationView->getAddQuestionLink($id);
+			$legendText = "Add a Question";
 		}
 
 		$html = "
 			<form role='form' action='$formLink' method='post' enctype='multipart/form-data'>
 				<fieldset>
-					<legend>Add a question</legend>
+					<legend>$legendText</legend>
 					
 					<div class='form-group'>
 						<label for='titleID'>Question:</label>
@@ -219,23 +241,17 @@ class CreateQuestion implements \form\model\FormObserver {
 			</form>";
 	}
 
-	private function getAnswers() {
+	private function getAnswers($edit = false) {
 		$answers = array();
+		$values = $this->getAnswersValue();
+
 		$i = 1;
-		while (true) {
-			try {
-				if (isset($_POST['at' . $i])) {
-					$type = \common\Filter::sanitizeString($_POST['at' . $i]);
-					$title = \common\Filter::sanitizeString($_POST['as' . $i]);
-					$answer = \form\model\AnswerCredentials::createFormBasic($title, $type, $i);
-					$answers[] = $answer;
-					$i++;
-				} else {
-					break;
-				}
-			} catch (\Exception $e) {
-				break;
-			}
+		foreach ($values as $key => $value) {
+			$type = \common\Filter::sanitizeString($value[0]);
+			$title = \common\Filter::sanitizeString($value[1]);
+			$answer = \form\model\AnswerCredentials::createFull($title, $type, $i, $key);
+			$answers[] = $answer;
+			$i++;
 		}
 		return $answers;
 	}

@@ -14,30 +14,33 @@ class CreateQuestion implements \common\controller\IController {
 
 	private $manageQuestion;
 
+	private $manageForm;
+
 	public function __construct(\application\view\Navigation $navigationView, 
 								\authorization\model\UserCredentials $user) {
 		$this->navigationView = $navigationView;
 		$this->createQuestionView = new \form\view\CreateQuestion($this->navigationView);
 		$this->manageQuestion = new \form\model\ManageQuestion($user, $this->createQuestionView);
+		$this->manageForm = new \form\model\ManageForm($user, $this->createQuestionView);
 	}
 
 	public function run() {
 		try {
 			$formId = $this->createQuestionView->getFormId();
-			$this->manageQuestion->userOwnsForm($formId);
+			$this->manageForm->userOwnsForm($formId);
 			if ($this->createQuestionView->isSaving() ) {
 				try {
 					$questionCred = $this->createQuestionView->getQuestionCredentials();
-					$this->manageQuestion->saveNewQuestion($questionCred, $formId);
+					$this->manageQuestion->saveQuestion($questionCred, $formId);
 				} catch (\Exception $e) {
 					return $this->createQuestionView->getHTML();
 				}
 			} else if($this->navigationView->editQuestion()) {
-				try {//@todo spara ändrat formulär
+				try {
 					$qId = $this->createQuestionView->getQuestionId();
 					$this->manageQuestion->questionBelongsToForm($formId, $qId);
 					$question = $this->manageQuestion->getQuestion($qId);
-					return $this->createQuestionView->getEditHTML($question);
+					return $this->createQuestionView->getEditHTML($question);	
 				} catch (\Exception $e) {
 					$this->navigationView->goToEditForm($formId);
 				}

@@ -28,6 +28,7 @@ class CreateForm implements \form\model\FormObserver {
 		if ($this->createFormHTML) {
 			$homeLink = $this->navigationView->getGoToHomeLink();
 			$html = "
+			<div clas='row'>
 				<form role='form' action='" . $this->navigationView->getGoToCreateFormLink() . "' method='post' enctype='multipart/form-data'>
 					<fieldset>
 						<legend>Create new form</legend>
@@ -50,7 +51,8 @@ class CreateForm implements \form\model\FormObserver {
 						<input type='submit' value='Create form' class='btn btn-success'>
 						<a href='$homeLink' class='btn btn-warning'>Cancel</a>
 					</fieldset>
-				</form>";
+				</form>
+			</div>";
 		} else {
 			$html = $this->getFixedHTML($form);
 		}
@@ -70,20 +72,25 @@ class CreateForm implements \form\model\FormObserver {
 				<h3>Title</h3>
 					$title
 				<h4>Description</h4>
-					$description
-				<h4>End date</h4>
-					$endDate
-				";
+					$description";
 
-		if ($published) {
-			$html .= "<p>Published: Yes</p>";
+		if (strtotime($endDate) < time()) {
+			$html .= "	
+				<h4>Ended: Yes</h4>";
 		} else {
-			$html .= "<p>Published: No</p>";
+			$html .= "	
+				<h4>Ended: No</h4>";
+		}
+		$html .= "<h4>End date: $endDate</h4>";
+		if ($published) {
+			$html .= "<h4>Published: Yes</h4>";
+		} else {
+			$html .= "<h4>Published: No</h4>";
 		}
 		
 		$html .= "
 			<a href='" . $this->navigationView->getAddQuestionLink($id) . "' class='btn btn-primary'>Add Question</a>
-			<h4>Questions</h4>";
+			<h3>Questions</h3>";
 
 		$questions = $form->getQuestions();
 		if (count($questions) > 0) {
@@ -120,7 +127,7 @@ class CreateForm implements \form\model\FormObserver {
 		$title = $this->getTitle();
 		$description = $this->getDescription();
 		$endDate = $this->getEndDate();
-		return \form\model\FormCredentials::createFormBasic($title, $description, $endDate);
+		return \form\model\FormCredentials::createBasic($title, $description, $endDate);
 	}
 
 	public function getFormId() {
@@ -137,7 +144,7 @@ class CreateForm implements \form\model\FormObserver {
 	}
 
 	public function addFormFailed() {
-
+		//Visa validerings fel
 	}
 
 	public function getFormOk() {

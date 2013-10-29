@@ -30,6 +30,9 @@ final class DbConnection {
 
 	public function connect($dbServer, $dbUser, $dbPassword, $db) {
 		$this->mysqli = new \mysqli($dbServer, $dbUser, $dbPassword, $db);
+		if ($this->mysqli->connect_errno) {
+   			throw new \Exception("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
+		}
 	}
 
 	public function close() {

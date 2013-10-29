@@ -10,6 +10,8 @@ class AnswerCredentials {
 
 	private $title;
 
+	private $type;
+
 	private static $minStringLength = 2;
 
 	private static $maxStringLength = 50;
@@ -22,11 +24,11 @@ class AnswerCredentials {
 		$this->id = $id;
 	}
 
-	public static function createFormBasic($title, $type, $order) {
+	public static function createBasic($title, $type, $order) {
 		return new \form\model\AnswerCredentials($title, $type, $order);
 	}
 
-	public static function createFormFromDB($title, $type, $order, $id) {
+	public static function createFull($title, $type, $order, $id) {
 		return new \form\model\AnswerCredentials($title, $type, $order, $id);
 	}
 

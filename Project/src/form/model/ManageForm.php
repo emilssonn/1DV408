@@ -2,14 +2,16 @@
 
 namespace form\model;
 
-require_once("./src/form/model/FormDAL.php");
-require_once("./src/form/model/Form.php");
+require_once("./src/form/model/TemplateFormDAL.php");
+require_once("./src/form/model/UserFormDAL.php");
 
 class ManageForm {
 
 	private $user;
 
-	private $formDAL;
+	private $templateFormDAL;
+
+	private $userFormDAL;
 
 	private $formObserver;
 
@@ -17,34 +19,35 @@ class ManageForm {
 								\form\model\FormObserver $formObserver) {
 		$this->user = $user;
 		$this->formObserver = $formObserver;
-		$this->formDAL = new \form\model\FormDAL($user);
+		$this->templateFormDAL = new \form\model\TemplateFormDAL($user);
+		$this->userFormDAL =  new \form\model\UserFormDAL($user);
 	}
 
 	public function saveNewForm(\form\model\FormCredentials $formCred) {
 		try {
-			if (!$this->formDAL->formExists($formCred)) {
-				$dbFormCred = $this->formDAL->insertForm($formCred);
-				$this->formObserver->addFormOk($dbFormCred);
-			} else {
-				
-				throw new \Exception();
-			}
+			$dbFormCred = $this->templateFormDAL->insertForm($formCred);
+			$this->formObserver->addFormOk($dbFormCred);
 		} catch (\Exception $e) {
 			throw $e;
 		}
 	}
 
 	public function saveAnswers(\form\model\Form $form, $answerViewCredentialsArray) {
-		$this->formDAL->insertAnsweredForm($form, $answerViewCredentialsArray);
+		$this->userFormDAL->insertAnsweredForm($form, $answerViewCredentialsArray);
+	}
+
+	public function updateAnswers(\form\model\SubmittedFormCredentials $submittedFormCredentials, $answers) {
+		$this->userFormDAL->updateAnsweredForm($submittedFormCredentials, $answers);
+		$this->formObserver->addFormOk();
 	}
 
 	public function userOwnsForm($formId) {
-		$this->formDAL->userOwnsForm($formId);
+		$this->templateFormDAL->userOwnsForm($formId);
 	}
 
 	public function getForm($id) {
 		try {
-			$form = $this->formDAL->getFormById($id);
+			$form = $this->templateFormDAL->getFormById($id);
 			$this->formObserver->getFormOk();
 			return $form;
 		} catch (\Exception $e) {
@@ -53,14 +56,14 @@ class ManageForm {
 	}
 
 	public function getFullForm($id) {
-		$form = $this->formDAL->getFullForm($id);
+		$form = $this->templateFormDAL->getFullForm($id);
 		$this->formObserver->getFormOk();
 		return $form;
 	}
 
-	public function getForms() {
+	public function getActiveForms() {
 		try {
-			$forms = $this->formDAL->getForms();
+			$forms = $this->templateFormDAL->getForms();
 			return $forms;
 		} catch (\Exception $e) {
 
@@ -68,12 +71,20 @@ class ManageForm {
 	}
 
 	public function getFormsByUser() {
-		$forms = $this->formDAL->getForms(false);
+		$forms = $this->templateFormDAL->getForms(false);
 		return $forms;
 	}
 
 	public function getFormResults($id) {
-		return $this->formDAL->getFormResult($id);
+		return $this->userFormDAL->getFormResult($id);
+	}
+
+	public function getFormsSubmittedByUser() {
+		return $this->userFormDAL->getSubmittedFormsByUser($this->templateFormDAL);
+	}
+
+	public function getFormResultByUser($subFormId) {
+		return $this->userFormDAL->getFormResultByUser($subFormId, $this->templateFormDAL);
 	}
 
 }

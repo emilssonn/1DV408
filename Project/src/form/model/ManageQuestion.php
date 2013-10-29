@@ -2,7 +2,7 @@
 
 namespace form\model;
 
-require_once("./src/form/model/FormDAL.php");
+require_once("./src/form/model/TemplateFormDAL.php");
 require_once("./src/form/model/Form.php");
 
 class ManageQuestion {
@@ -13,25 +13,27 @@ class ManageQuestion {
 
 	private $formObserver;
 
+	private $questionDAL;
+
 	public function __construct(\authorization\model\UserCredentials $user,
 								\form\model\FormObserver $formObserver) {
 		$this->user = $user;
 		$this->formObserver = $formObserver;
-		$this->formDAL = new \form\model\FormDAL($user);
+		$this->questionDAL = new \form\model\TemplateQuestionDAL();
 	}
 
-	public function saveNewQuestion(\form\model\QuestionCredentials $questionCred, $formId) {
+	public function saveQuestion(\form\model\QuestionCredentials $questionCred, $formId) {
 		try {
-			
-			$this->formDAL->insertQuestion($questionCred, $formId);
-			$this->formObserver->addQuestionOk();
+			if ($questionCred->getId() === null) {
+				$this->questionDAL->insertQuestion($questionCred, $formId);
+				$this->formObserver->addQuestionOk();
+			} else {
+				$this->questionDAL->updateQuestion($questionCred, $formId);
+				$this->formObserver->addQuestionOk();
+			}
 		} catch (\Exception $e) {
 			throw $e;
 		}
-	}
-
-	public function userOwnsForm($formId) {
-		$this->formDAL->userOwnsForm($formId);
 	}
 
 	public function questionBelongsToForm($fId, $qId) {
@@ -39,7 +41,7 @@ class ManageQuestion {
 	}
 
 	public function getQuestion($qId) {
-		return $this->formDAL->getQuestionById($qId);
+		return $this->questionDAL->getQuestionById($qId);
 	}
 
 }

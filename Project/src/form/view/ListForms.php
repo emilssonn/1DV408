@@ -13,12 +13,94 @@ class ListForms implements \form\model\FormObserver {
 		$this->navigationView = $navigationView;
 	}
 
+	public function getSubmittedFormsHTML($forms) {
+		$html = "
+				<ul class='list-unstyled'>";
+		foreach ($forms as $form) {
+			$html .= $this->getSubmittedPanelHTML($form);
+		}
+		$html .= "</ul>";
+		return $html;
+	}
+
+	private function getSubmittedPanelHTML($form) {
+		$title = $form->getTitle();
+		$description = $form->getDescription();
+		$endDate = $form->getEndDate();
+		$formId = $form->getFormId();
+		$submitted = $form->getSubmittedDate();
+		$lastUpdateDate = $form->getLastUpdatedDate();
+		$authorId = $form->getAuthorId();
+		$userFormId = $form->getUserFormId();
+		$link = $this->navigationView->getShowSubmittedFormLink($formId, $userFormId);
+		$html = "
+			<li>
+				<div class='panel panel-default'>
+  					<div class='panel-heading'>
+  						<h3 class='panel-title'>$title <small>by $authorId</small></h3>
+  					</div>
+ 					<div class='panel-body'>
+    					$description
+    					<br/>
+    					<ul class='list-inline'>
+    						<li>Submitted: $submitted</li>
+    						<li>Last Updated: $lastUpdateDate</li>";
+
+    	if (strtotime($endDate) < time()) {
+    		$html .= "		<li>Ended: Yes</li>";
+    	} else {
+    		$html .= "		<li>Ended: No</li>";
+    	}
+
+    	$html .= "			<li>End Date: $endDate</li>
+    					</ul>
+    					<span class='pull-right'>
+    						<a href='$link'>Open</a>
+  					</div>
+				</div>
+			</li>";
+		return $html;
+	}
+
 	public function getHTML($forms, $manage = false) {
+		$html = "";
+		if ($manage) {
+			$html = $this->getManageHTML($forms);
+		} else {
+			if ($forms != null) {
+				$html = "
+					<ul class='list-unstyled'>";
+
+				foreach ($forms as $form) {
+					$title = $form->getTitle();
+					$description = $form->getDescription();
+					$endDate = $form->getEndDate();
+					$id = $form->getId();
+					$createdDate = $form->getCreatedDate();
+					$lastUpdateDate = $form->getLastUpdatedDate();
+					$authorId = $form->getAuthorId();
+					$link = $this->navigationView->getGoToFormLink($id);
+
+					
+
+					$html .= $this->getPanelHTML($title, $description, $endDate, $id, 
+						$createdDate, $lastUpdateDate, $authorId, $link, $manage);
+				}
+
+				$html .= "</ul>";
+			}
+		}
+		return $html;
+	}
+
+	private function getManageHTML($forms) {
 		$html = "
 			<ul class='list-unstyled'>
 				<li>Published and active
 					<ul class='list-unstyled'>";
 
+		$published = true;
+		$finnshed = true;
 		foreach ($forms as $form) {
 			$title = $form->getTitle();
 			$description = $form->getDescription();
@@ -29,7 +111,7 @@ class ListForms implements \form\model\FormObserver {
 			$authorId = $form->getAuthorId();
 			$link = $this->navigationView->getGoToFormLink($id);
 
-			if (!$form->isPublished()) {
+			if (!$form->isPublished() && $published) {
 				$html .= "
 					</ul>
 				</li>
@@ -37,9 +119,21 @@ class ListForms implements \form\model\FormObserver {
 					<ul class='list-unstyled'>
 						<li>Not Published
 							<ul class='list-unstyled'>";
+				$published = false;
 			}
+			if (strtotime($endDate) < time() && $finnshed) {
+				$html .= "
+					</ul>
+				</li>
+				<li>
+					<ul class='list-unstyled'>
+						<li>Finnished
+							<ul class='list-unstyled'>";
+				$finnshed = false;
+			}
+
 			$html .= $this->getPanelHTML($title, $description, $endDate, $id, 
-				$createdDate, $lastUpdateDate, $authorId, $link, $manage);
+				$createdDate, $lastUpdateDate, $authorId, $link, true);
 		}
 
 		$html .= "</ul></li></ul>";

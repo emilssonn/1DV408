@@ -16,26 +16,33 @@ require_once("./src/form/controller/ListForms.php");
 require_once("./src/common/controller/IController.php");
 require_once("./src/form/controller/AnswerForm.php");
 require_once("./src/form/controller/ViewResults.php");
+require_once("./src/form/controller/ManageSubmittedForm.php");
 
 class Application implements \common\controller\IController {
 
 	/**
-	 * @var \view\Login
+	 * @var user\authorization\view\Login
 	 */
 	private $loginView;
 
 	/**
-	 * @var \controller\Login
+	 * @var user\authorization\controller\Login
 	 */
 	private $loginController;
 
 	/**
-	 * @var \view\Application
+	 * @var application\view\Application
 	 */
 	private $applicationView;
 
+	/**
+	 * @var application\view\Navigation
+	 */
 	private $navigationView;
 
+	/**
+	 * @param common\view\PageView $pageView
+	 */
 	public function __construct(\common\view\PageView $pageView) {
 
 		$this->navigationView = new \application\view\Navigation();
@@ -72,6 +79,9 @@ class Application implements \common\controller\IController {
 
 			} else if ($this->navigationView->answerForm()) {
 				return $this->answerForm($loggedInUserCredentials);
+
+			} else if ($this->navigationView->showMySubmittedForm()) {
+				return $this->showMySubmittedForm($loggedInUserCredentials);
 
 			} else if ($this->navigationView->viewResults()) {
 				return $this->viewResults($loggedInUserCredentials);
@@ -127,5 +137,11 @@ class Application implements \common\controller\IController {
 		$viewResultsController = new \form\controller\ViewResults($user, $this->navigationView);
 		$html = $viewResultsController->run();
 		return $this->applicationView->getFormResultPage($html);
+	}
+
+	private function showMySubmittedForm(\authorization\model\UserCredentials $user) {
+		$manageSubmittedFormController = new \form\controller\ManageSubmittedForm($user, $this->navigationView);
+		$html = $manageSubmittedFormController->run();
+		return $this->applicationView->getAnswerFormPage($html);
 	}
 }

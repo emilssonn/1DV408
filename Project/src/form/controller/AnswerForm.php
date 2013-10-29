@@ -32,6 +32,7 @@ class AnswerForm implements \common\controller\IController {
 				try {
 					$answers = $this->answerFormView->getAnswers($form);
 					$this->manageForm->saveAnswers($form, $answers);
+					$this->navigationView->goToHome();
 				} catch (\Exception $e) {
 					return $this->answerFormView->getHTML($form);
 				}

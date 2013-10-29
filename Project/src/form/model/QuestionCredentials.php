@@ -26,11 +26,11 @@ class QuestionCredentials {
 		$this->id = $id;
 	}
 
-	public static function createFormBasic($title, $description) {
+	public static function createBasic($title, $description) {
 		return new \form\model\QuestionCredentials($title, $description);
 	}
 
-	public static function createFormFromDB($title, $description, $id) {
+	public static function createFull($title, $description, $id) {
 		return new \form\model\QuestionCredentials($title, $description, $id);
 	}
 
