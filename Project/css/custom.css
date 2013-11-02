@@ -1,0 +1,12 @@
+.panel-title {
+	font-size: 30px;
+}
+
+input[type="text"]:disabled
+{
+	background:white;
+} 
+
+textarea {
+	max-width: 100%;
+}

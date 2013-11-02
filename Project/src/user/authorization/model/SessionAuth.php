@@ -1,7 +1,10 @@
 <?php
 
-namespace authorization\model;
+namespace user\authorization\model;
 
+/**
+ * @author Peter Emilsson
+ */
 class SessionAuth {
 
 	/**
@@ -43,7 +46,7 @@ class SessionAuth {
 	/**
 	 * @param  \model\User $user
 	 */
-	public function save(\authorization\model\User $user) {
+	public function save(\user\authorization\model\User $user) {
 		$_SESSION[self::$sessionLocation] = $user;
 	}
 }

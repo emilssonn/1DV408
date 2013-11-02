@@ -1,31 +1,34 @@
 <?php
 
-namespace register\model; 
+namespace user\register\model; 
 
 require_once("./src/user/model/UserCredentials.php");
 require_once("./src/user/register/model/RegisterObserver.php");
 
+/**
+ * @author Peter Emilsson
+ */
 class Register {
 
+	/**
+	 * @var \user\model\UserDAL
+	 */
 	private $userDAL;
 		
 	public function __construct() {		
-		$this->userDAL = new \authorization\model\UserDAL();
+		$this->userDAL = new \user\model\UserDAL();
 	}
 
 	/**
-	 * @param  UserCredentials $fromClient
-	 * @param  LoginObserver   $observer 
-	 *
+	 * @param  \user\model\UserCredentials $fromClient
+	 * @param  \user\register\model\RegisterObserver   $observer 
 	 * @throws  \Exception if login failed
 	 */
-	public function doRegister(\authorization\model\UserCredentials $fromClient, 
-							\register\model\RegisterObserver $observer) {
+	public function doRegister(\user\model\UserCredentials $fromClient, 
+							\user\register\model\RegisterObserver $observer) {
 		try {
-
 			if (!$this->userDAL->userExists($fromClient)) {
 				$this->userDAL->insertUser($fromClient);
-
 				$observer->registerOK();
 			} else {
 				$observer->userExists();

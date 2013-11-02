@@ -4,30 +4,61 @@ namespace form\model;
 
 require_once("./src/common/model/DbConnection.php");
 require_once("./src/form/model/UserAnswerDAL.php");
-require_once("./src/form/model/UserQuestionCredentials.php");
 require_once("./src/form/model/SubmittedFormCredentials.php");
 
+/**
+ * @author Peter Emilsson
+ * Class used to access the table "user_form"
+ * All functions throws \Exception on error
+ */
 class UserFormDAL {
 
+	/**
+	 * @var string
+	 */
 	private static $userFormTable = "user_form";
 
+	/**
+	 * @var \common\model\DbConnection
+	 */
 	private $dbConnection;
 
+	/**
+	 * @var \user\model\UserCredentials
+	 */
 	private $user;
 
+	/**
+	 * @var \form\model\UserAnswerDAL
+	 */
 	private $userAnswerDAL;
 
-	public function __construct(\authorization\model\UserCredentials $user = null) {
+	/**
+	 * @param \user\model\UserCredentials $user, logged in user
+	 */
+	public function __construct(\user\model\UserCredentials $user = null) {
 		$this->dbConnection = \common\model\DbConnection::getInstance();
 		$this->user = $user;
 		$this->userAnswerDAL = new \form\model\UserAnswerDAL();
 	}
 
+	/**
+	 * @param  \form\model\Form $form
+	 * @return array of \form\model\QuestionResultCredentials
+	 * @throws \Exception If database query fails        
+	 */
 	public function getFormResult(\form\model\Form $form) {
 		return $this->userAnswerDAL->getFormResult($form);
 	}
 
-	public function getSubmittedFormsByUser(\form\model\TemplateFormDAL $templateFormDAL, $one = null) {
+	/**
+	 * @param  \form\model\TemplateFormDAL 	$templateFormDAL
+	 * @param  int                   		$userFormTableId, optional - return only one if provided
+	 * @return array of \form\model\SubmittedFormCredentials
+	 * @throws \Exception If database query fails        
+	 */
+	public function getSubmittedFormsByUser(\form\model\TemplateFormDAL $templateFormDAL,
+											$userFormTableId = null) {
 		$templateFormTable = $templateFormDAL->getTemplateFormTable();
 		$userFormTable = self::$userFormTable;
 		$ret = array();
@@ -45,41 +76,49 @@ class UserFormDAL {
 					ON $userFormTable.form_id = $templateFormTable.id 
 				WHERE $userFormTable.user_id = ? ";
 
-		if ($one != null) {
+		if ($userFormTableId != null) {
 			$sql .= "AND $userFormTable.id = ? ";
 		} 
 
-		$sql .= "GROUP BY $userFormTable.form_id 
-				ORDER BY $userFormTable.last_updated_date";
+		$sql .= " 
+				ORDER BY $userFormTable.last_updated_date DESC";
 
-		if ($one != null) {
-			$statement = $this->dbConnection->runSql($sql, 
-				array($this->user->getId(), $one),
+		if ($userFormTableId != null) {
+			$stmt = $this->dbConnection->runSql($sql, 
+				array($this->user->getId(), $userFormTableId),
 				"ii");
 		} else {
-			$statement = $this->dbConnection->runSql($sql, 
+			$stmt = $this->dbConnection->runSql($sql, 
 				array($this->user->getId()),
 				"i");
 		}
-            
-        $result = $statement->get_result();
 
+        $result = $stmt->get_result();
+
+        $userDAL = new \user\model\UserDAL();
         while ($object = $result->fetch_array(MYSQLI_ASSOC)) {
-                $ret[] = new \form\model\SubmittedFormCredentials(
-                	$object["form_id"],
-                	$object["id"],
-                	$object["title"], 
-                	$object["description"],   	
-                	$object["author_id"], 
-                	$object["end_date"], 
-                	$object["submitted_date"], 
-                	$object["last_updated_date"]);
+			$author = $userDAL->getUserById($object["author_id"]);
+            $ret[] = new \form\model\SubmittedFormCredentials(
+              	$object["form_id"],
+               	$object["id"],
+               	$object["title"], 
+               	$object["description"],   	
+               	$author, 
+                new \common\model\CustomDateTime($object["end_date"]), 
+               	new \common\model\CustomDateTime($object["submitted_date"]), 
+               	new \common\model\CustomDateTime($object["last_updated_date"]));
         }
-		$statement->free_result();
 
+		$stmt->free_result();
 		return $ret;
 	}
 
+	/**
+	 * @param  int                   		$subFormId
+	 * @param  \form\model\TemplateFormDAL 	$templateFormDAL 
+	 * @return \form\model\SubmittedFormCredentials
+	 * @throws \Exception If database query fails        
+	 */
 	public function getFormResultByUser($subFormId, \form\model\TemplateFormDAL $templateFormDAL) {
 		$submittedFormCredentials = $this->getSubmittedFormsByUser($templateFormDAL, $subFormId);
 
@@ -88,22 +127,35 @@ class UserFormDAL {
 		return $submittedFormCredentials[0];
 	}
 
-		/**
-	 * [insertAnsweredForm description]
-	 * @param  formmodelForm $form                       [description]
-	 * @param  [type]        $answerViewCredentialsArray [description]
-	 * @return [type]                                    [description]
+	/**
+	 * @param  \form\model\Form 							$form                      
+	 * @param  array of \form\model\AnswerViewCredentials 	$answerViewCredentialsArray
+	 * @return int the id given by the database
+	 * @throws \Exception If database query fails        
 	 */
 	public function insertAnsweredForm(\form\model\Form $form, $answerViewCredentialsArray) {
 		$id = $this->insertUserForm($form);
 		$this->userAnswerDAL->insertUserAnswers($answerViewCredentialsArray, $id);
+		return $id;
 	}
 
-	public function updateAnsweredForm($submittedFormCredentials, $answers) {
+	/**
+	 * @param  \form\model\SubmittedFormCredentials $submittedFormCredentials
+	 * @param  \form\model\QuestionViewCredentials $questionViewCredentialsArray
+	 * @return int                  
+	 * @throws \Exception If database query fails               
+	 */
+	public function updateAnsweredForm(\form\model\SubmittedFormCredentials $submittedFormCredentials, 
+										$questionViewCredentialsArray) {
 		$this->updateAnsweredFormDate($submittedFormCredentials);
-		$this->userAnswerDAL->updateUserAnswers($submittedFormCredentials, $answers);
+		$this->userAnswerDAL->updateUserAnswers($submittedFormCredentials, $questionViewCredentialsArray);
+		return $submittedFormCredentials->getUserFormId();
 	}
 
+	/**
+	 * @param  \form\model\SubmittedFormCredentials $submittedFormCredentials
+	 * @throws \Exception If database query fails        
+	 */
 	private function updateAnsweredFormDate(\form\model\SubmittedFormCredentials $submittedFormCredentials) {
 		$sql = "UPDATE " . self::$userFormTable . "
 				SET last_updated_date = null
@@ -114,12 +166,16 @@ class UserFormDAL {
 		$userId = $this->user->getId();
 		$formId = $submittedFormCredentials->getFormId();
 		$userFormId = $submittedFormCredentials->getUserFormId();
-		$statement = $this->dbConnection->runSql($sql, 
+		$this->dbConnection->runSql($sql, 
 			array($userFormId, $userId, $formId),
 			"iii");
-		$statement->free_result();
 	}
 
+	/**
+	 * @param  \form\model\Form $form
+	 * @return int id given by the database
+	 * @throws \Exception If database query fails        
+	 */
 	private function insertUserForm(\form\model\Form $form) {
 		$sql = "INSERT INTO " . self::$userFormTable . "
 				(
@@ -129,7 +185,7 @@ class UserFormDAL {
 				)
 				VALUES(?, ?, ?)";
 
-		$statement = $this->dbConnection->runSql($sql, 
+		$this->dbConnection->runSql($sql, 
 			array($this->user->getId(), $form->getId(), null),
 			"iis");
 

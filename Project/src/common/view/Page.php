@@ -2,6 +2,11 @@
 
 namespace common\view;
 
+/**
+ * @author Daniel Toll - https://github.com/dntoll
+ * Changes by Peter Emilsson
+ * Combines HTML
+ */
 class Page {
   
 	//Properties of the document

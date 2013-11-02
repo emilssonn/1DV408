@@ -1,6 +1,6 @@
 <?php
 
-namespace authorization\model;
+namespace user\model;
 
 require_once("./src/user/model/TemporaryPassword.php");
 require_once("./src/user/model/TemporaryPasswordServer.php");
@@ -8,6 +8,10 @@ require_once("./src/user/model/TemporaryPasswordClient.php");
 require_once("./src/user/model/Username.php");
 require_once("./src/user/model/Password.php");
 
+/**
+ * @author Daniel Toll - https://github.com/dntoll
+ * Changes by Peter Emilsson
+ */
 class UserCredentials {
 
 	public $id;
@@ -24,9 +28,9 @@ class UserCredentials {
 	 * @param Password string 
 	 * @param TemporaryPassword $temporaryPassword
 	 */
-	private function __construct(Username $username, 
-								 Password $password,	 
-								 TemporaryPassword $temporaryPassword,
+	private function __construct(\user\model\Username $username, 
+								 \user\model\Password $password,	 
+								 \user\model\TemporaryPassword $temporaryPassword,
 								 $id = null) {
 		$this->username = $username;
 		$this->password = $password;
@@ -34,30 +38,32 @@ class UserCredentials {
 		$this->temporaryPassword = $temporaryPassword;
 	}
 
-	public static function createFromDbData(Username $username, Password $password, $id) {
-		return new UserCredentials($username, $password, new TemporaryPasswordServer(), $id);
+	public static function createFromDbData(\user\model\Username $username, \user\model\Password $password, $id) {
+		return new UserCredentials($username, $password, new \user\model\TemporaryPasswordServer(), $id);
 	}
 
-	public static function createFromDbCookieData(	Username $username, Password $password, 
-													TemporaryPasswordServer $temporaryPasswordServer, 
+	public static function createFromDbCookieData(	\user\model\Username $username, \user\model\Password $password, 
+													\user\model\TemporaryPasswordServer $temporaryPasswordServer, 
 													$id) {
 		return new UserCredentials($username, $password, $temporaryPasswordServer, $id);
 	}
 
-	
-
-	public static function create(Username $username, Password $password) {
-		return new UserCredentials($username, $password, new TemporaryPasswordServer());
+	public static function createBasic(\user\model\Username $username, $id) {
+		return new UserCredentials($username, \user\model\Password::emptyPassword(), new \user\model\TemporaryPasswordServer(), $id);
 	}
 
-	public static function createFromClientData(Username $username, 
-												Password $password) {
-		return new UserCredentials($username, $password, TemporaryPasswordClient::emptyPassword());
+	public static function create(\user\model\Username $username, \user\model\Password $password) {
+		return new UserCredentials($username, $password, new \user\model\TemporaryPasswordServer());
 	}
 
-	public static function createWithTempPassword(Username $username, 
-												  TemporaryPasswordClient $temporaryPassword) {
-		return new UserCredentials($username, Password::emptyPassword(), $temporaryPassword);
+	public static function createFromClientData(\user\model\Username $username, 
+												\user\model\Password $password) {
+		return new UserCredentials($username, $password, \user\model\TemporaryPasswordClient::emptyPassword());
+	}
+
+	public static function createWithTempPassword(\user\model\Username $username, 
+												  \user\model\TemporaryPasswordClient $temporaryPassword) {
+		return new UserCredentials($username, \user\model\Password::emptyPassword(), $temporaryPassword);
 	}
 	
 	/**
@@ -87,14 +93,14 @@ class UserCredentials {
 	}
 	
 	public function newTemporaryPassword() {
-		$this->temporaryPassword = new TemporaryPasswordServer();
+		$this->temporaryPassword = new \user\model\TemporaryPasswordServer();
 	}
 	
 	/**
 	 * @param  UserCredentials $other 
 	 * @return boolean        
 	 */
-	public function isSame(UserCredentials $userCred) {
+	public function isSame(\user\model\UserCredentials $userCred) {
 		$usernameIsSame = $this->getUsername() == $userCred->getUsername();
 		$passwordIsSame = false;
 		if ($userCred->password != null)

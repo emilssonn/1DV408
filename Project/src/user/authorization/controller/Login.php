@@ -1,25 +1,36 @@
 <?php
 
-namespace authorization\controller;
+namespace user\authorization\controller;
 
 require_once("./src/user/authorization/view/Login.php");
 require_once("./src/user/authorization/model/Login.php");
+require_once("./src/common/controller/IController.php");
 
-class Login {
+/**
+ * @author Daniel Toll - https://github.com/dntoll
+ * Changes by Peter Emilsson
+ */
+class Login implements \common\controller\IController {
 
 	/**
-	 * @var \view\Login
+	 * @var \user\login\view\Login
 	 */
 	private $loginView;
 
+	/**
+	 * @var \application\view\Navigation
+	 */
 	private $navigationView;
 
+	/**
+	 * @var \user\authorization\view\Login
+	 */
 	private $loginModel;
 
-	public function __construct(\authorization\view\Login $loginView, 
+	public function __construct(\user\authorization\view\Login $loginView, 
 								\application\view\Navigation $navigationView) {
 
-		$this->loginModel = new \authorization\model\Login();
+		$this->loginModel = new \user\authorization\model\Login();
 			
 		$this->loginView = $loginView;
 		$this->navigationView = $navigationView;
@@ -41,13 +52,7 @@ class Login {
 		return $this->loginModel->getLoggedInUser();
 	}
 
-	/**
-	 * Handle input
-	 * Make sure to log statechanges
-	 *
-	 * note this has no output, output goes through views that are called seperately
-	 */
-	public function doToggleLogin() {
+	public function run() {
 		if ($this->loginModel->isLoggedIn()) {
 			if ($this->loginView->isLoggingOut() ) {
 				$this->loginModel->doLogout();

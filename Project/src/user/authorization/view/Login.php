@@ -1,13 +1,17 @@
 <?php
 
-namespace authorization\view;
+namespace user\authorization\view;
 
 require_once("./src/user/authorization/model/User.php");
 require_once("./src/user/authorization/model/LoginObserver.php");
 require_once("./src/common/filter.php");
-require_once("./src/common/view/ErrorMessage.php");
+require_once("./src/common/view/UserMessage.php");
 
-class Login implements \authorization\model\LoginObserver {
+/**
+ * @author Daniel Toll - https://github.com/dntoll
+ * Changes by Peter Emilsson
+ */
+class Login implements \user\authorization\model\LoginObserver {
 
 	/**
 	 * Name in HTML form and location in $_POST
@@ -44,10 +48,10 @@ class Login implements \authorization\model\LoginObserver {
 	 */
 	private $username;
 
-
+	/**
+	 * @var \application\view\Navigation
+	 */
 	private $navigationView;
-
-	
 
 	/**
 	 * @param \view\Application $applicationView
@@ -110,46 +114,43 @@ class Login implements \authorization\model\LoginObserver {
 
 	public function doLogout() {
 		$this->removeCookies();
-		
-		$this->message  = "<p>You have been logged out.</p>";
+		$message = \common\view\UserMessage::getMessageByKey(1009);
+		$this->message .= "<p>$message</p>";
 	}
 	
 	/**
-	 * @return UserCredentials
+	 * @return \user\model\UserCredentials
 	 */
 	public function getUserCredentials() {
 		if ($this->hasCookies()) {
-			return \authorization\model\UserCredentials::createWithTempPassword(
-						new \authorization\model\Username($this->getUsername()), 
+			return \user\model\UserCredentials::createWithTempPassword(
+						new \user\model\Username($this->getUsername()), 
 						$this->getTemporaryPassword());
 		} else {
-			return \authorization\model\UserCredentials::createFromClientData(
-						new \authorization\model\Username($this->getUsername()), 
-						\authorization\model\Password::fromCleartext($this->getPassword()));
+			return \user\model\UserCredentials::createFromClientData(
+						new \user\model\Username($this->getUsername()), 
+						\user\model\Password::fromCleartext($this->getPassword()));
 		}
 	}
 
 	/**
-	 * note: private!
 	 * @return String
 	 */
 	private function getUsername() {
 		if (isset($_POST[self::$usernamePOST]))
-			return \Common\Filter::sanitizeString($_POST[self::$usernamePOST]);
+			return \common\Filter::sanitizeString($_POST[self::$usernamePOST]);
 		else if (isset($_COOKIE[self::$usernamePOST]))
-			return \Common\Filter::sanitizeString($_COOKIE[self::$usernamePOST]);
+			return \common\Filter::sanitizeString($_COOKIE[self::$usernamePOST]);
 		else
 			return "";
 	}
 	
-	/**
-	 * note: private!
-	 * 
+	/** 
 	 * @return String
 	 */
 	private function getPassword() {
 		if (isset($_POST[self::$passwordPOST]))
-			return \Common\Filter::sanitizeString($_POST[self::$passwordPOST]);
+			return \common\Filter::sanitizeString($_POST[self::$passwordPOST]);
 		else
 			return "";
 	}
@@ -168,10 +169,10 @@ class Login implements \authorization\model\LoginObserver {
 	 */
 	private function getTemporaryPassword() {
 		if (isset($_COOKIE[self::$passwordPOST])) {
-			$fromCookieString = \Common\Filter::sanitizeString($_COOKIE[self::$passwordPOST]);
-			return \authorization\model\TemporaryPasswordClient::fromString($fromCookieString);
+			$fromCookieString = \common\Filter::sanitizeString($_COOKIE[self::$passwordPOST]);
+			return \user\model\TemporaryPasswordClient::fromString($fromCookieString);
 		} else {
-			return \authorization\model\TemporaryPasswordClient::emptyPassword();
+			return \user\model\TemporaryPasswordClient::emptyPassword();
 		}
 	}
 
@@ -202,16 +203,19 @@ class Login implements \authorization\model\LoginObserver {
 	 */
 	public function loginFailed() {
 		if ($this->hasCookies()) {
-			$this->message = "<p>Felaktig information i cookie</p>";
+			$message = \common\view\UserMessage::getMessageByKey(1005);
+			$this->message .= "<p>$message</p>";
 			$this->removeCookies();
 		} else { 
 			if ($this->getUsername() == "") {
-				$emessage = \common\view\ErrorMessage::getByInt(1001);
-				$this->message .= "<p>$emessage</p>";
+				$message = \common\view\UserMessage::getMessageByKey(1002);
+				$this->message .= "<p>$message</p>";
 			} else if ($this->getPassword() == "") {
-				$this->message .= "<p>Lösenord saknas</p>";
+				$message = \common\view\UserMessage::getMessageByKey(1003);
+				$this->message .= "<p>$message</p>";
 			} else {
-				$this->message = "<p>Felaktigt användarnamn och/eller lösenord</p>";
+				$message = \common\view\UserMessage::getMessageByKey(1004);
+				$this->message .= "<p>$message</p>";
 			}
 		}
 	}
@@ -219,25 +223,29 @@ class Login implements \authorization\model\LoginObserver {
 	/**
 	 * From \model\LoginObserver
 	 */
-	public function loginOK(\authorization\model\TemporaryPasswordServer $tempCookie,
+	public function loginOK(\user\model\TemporaryPasswordServer $tempCookie,
 							$rememberMe = false) {
 		if ($rememberMe) {
-			$this->message  = "<p>Inloggning lyckades och vi kommer ihåg dig nästa gång</p>";
+			$message = \common\view\UserMessage::getMessageByKey(1007);
+			$this->message .= "<p>$message</p>";
 			$expire = $tempCookie->getExpireDate();
-			setcookie(self::$usernamePOST, $this->getUsername(), $expire);
-			setcookie(self::$passwordPOST, $tempCookie->getTemporaryPassword(), $expire);
+			setcookie(self::$usernamePOST, $this->getUsername(), $expire, "", "", false , true);
+			setcookie(self::$passwordPOST, $tempCookie->getTemporaryPassword(), $expire, "", "", false , true);
 		} else if ($this->hasCookies()) {
-			$this->message  = "<p>Inloggning lyckades via cookies</p>";
+			$message = \common\view\UserMessage::getMessageByKey(1006);
+			$this->message .= "<p>$message</p>";
 		} else {
-			$this->message  = "<p>Inloggning lyckades</p>";
+			$message = \common\view\UserMessage::getMessageByKey(1008);
+			$this->message .= "<p>$message</p>";
 		}
 	}
 
 	/**
 	 * @param  \login\model\UserCredentials $userCred
 	 */
-	public function registerOk(\authorization\model\UserCredentials $userCred) {
-		$this->message = "<p>Registrering av ny användare lyckades</p>";
+	public function registerOk(\user\model\UserCredentials $userCred) {
+		$message = \common\view\UserMessage::getMessageByKey(1101);
+		$this->message .= "<p>$message</p>";
 		$this->regUsername = $userCred->getUserName();
 	}
 }

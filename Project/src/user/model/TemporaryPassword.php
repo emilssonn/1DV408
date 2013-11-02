@@ -1,7 +1,11 @@
 <?php
 
-namespace authorization\model;
+namespace user\model;
 
+/**
+ * @author Daniel Toll - https://github.com/dntoll
+ * Changes by Peter Emilsson
+ */
 abstract class TemporaryPassword {
 	/**
 	 * @var String

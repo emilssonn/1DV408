@@ -1,8 +1,10 @@
 <?php
 
-namespace authorization\model;
+namespace user\model;
 
 /**
+ * @author Daniel Toll - https://github.com/dntoll
+ * Changes by Peter Emilsson
  * The server representation of a temporary password
  * adds expireDate 
  */
@@ -20,7 +22,7 @@ class TemporaryPasswordServer extends TemporaryPassword {
 	
 	
 	public function __construct() {
-		$this->expireDate = time() + 60;
+		$this->expireDate = time() + 60*60*24*10;
 		$this->temporaryPassword = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 40);
 	}
 

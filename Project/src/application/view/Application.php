@@ -4,6 +4,9 @@ namespace application\view;
 
 require_once("./src/common/view/Page.php");
 
+/**
+ * @author Peter Emilsson
+ */
 class Application {
 
 	/**
@@ -22,12 +25,12 @@ class Application {
 	private $pageView;
 
 	/**
-	 * @param application\view\Navigation $navigationView [description]
-	 * @param authorization\view\Login    $loginView      [description]
-	 * @param common\view\PageView        $pageView       [description]
+	 * @param application\view\Navigation $navigationView 
+	 * @param authorization\view\Login    $loginView      
+	 * @param common\view\PageView        $pageView      
 	 */
 	public function __construct(\application\view\Navigation $navigationView,
-								\authorization\view\Login $loginView,
+								\user\authorization\view\Login $loginView,
 								\common\view\PageView $pageView) {
 		$this->loginView = $loginView;
 		$this->navigationView = $navigationView;
@@ -38,12 +41,12 @@ class Application {
 	 * @return \common\view\Page
 	 */
 	public function getLoggedOutPage() {
-		$html = $this->getHeader(false);
 		$loginBox = $this->loginView->getLoginBox(); 
 		$registerLink = $this->navigationView->getRegisterLink();
 		$this->pageView->addStyleSheet("css/vendor/signin.css");
+		$this->addFormFiles();
 
-		$html .= "
+		$html = "
 				<div class='container'>
 					<div class='well'>
 						$loginBox
@@ -52,21 +55,20 @@ class Application {
 						$registerLink
 					</div>
 				</div>";
-		$html .= $this->getFooter();
 
 		return new \common\view\Page("Sign in", $html);
 	}
 
 	/**
-	 * @param  register\view\Register $registerView [description]
+	 * @param  \register\view\Register $registerView
 	 * @return \common\view\Page
 	 */
-	public function getRegisterPage(\register\view\Register $registerView) {
-		$html = $this->getHeader(false);
+	public function getRegisterPage(\user\register\view\Register $registerView) {
 		$registerForm = $registerView->getRegisterForm();
 		$this->pageView->addStyleSheet("css/vendor/signin.css");
+		$this->addFormFiles();
 
-		$html .= "
+		$html = "
 				<div class='container'>
 					<div class='well'>
 						$registerForm
@@ -75,166 +77,121 @@ class Application {
 						<a href='.'>Back to sign in</a>
 					</div>
 				</div>";
-		$html .= $this->getFooter();
 
 		return new \common\view\Page("Sign up", $html);
 	}
 
 	/**
-	 * @param  home\view\Home $homeView [description]
+	 * @param  string HTML $homeHTML
 	 * @return \common\view\Page
 	 */
-	public function getHomePage(\home\view\Home $homeView) {
-		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
-		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+	public function getHomePage($homeHTML) {
 		$menu = $this->getMenu();
 		$navBar = $this->getNavBar();
-		$html = $this->getHeader(true);
-		$homePage = $homeView->getHTML();
 
-		$html .= "
-				<h1>Home</h1>
-				$homePage";
-
-		$html .= $this->getFooter();
+		$html = "
+				$homeHTML";
 
 		return new \common\view\Page("Home", $html, $menu, $navBar);
 	}
 
 	/**
-	 * [getCreateFormPage description]
 	 * @param  String HTML $createFormHTML
 	 * @return \common\view\Page
 	 */
 	public function getCreateFormPage($createFormHTML) {
-		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
-		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+		$this->pageView->addStyleSheet("css/vendor/jquery-ui-1.10.3.custom.min.css");
+		$this->pageView->addStyleSheet("css/vendor/jquery-ui-timepicker-addon.css");
+		$this->pageView->addJavaScript("javascript/vendor/jquery-ui-1.10.3.custom.min.js");
+		$this->pageView->addJavaScript("javascript/vendor/jquery-ui-timepicker-addon.js");
+		$this->pageView->addJavaScript("javascript/dateTimePicker.js");
+		$this->addFormFiles();
+
 		$menu = $this->getMenu();
 		$navBar = $this->getNavBar();
-		$html = $this->getHeader(true);
-
-		$html .= "
-			<div class='col-xs-12 col-sm-9 col-md-6'>
+		$html = "
+			<div class='col-xs-12 col-sm-12 col-md-12'>
 				$createFormHTML
 			</div>";
-
-		$html .= $this->getFooter();
 
 		return new \common\view\Page("Create new form", $html, $menu, $navBar);
 	}
 
 	/**
-	 * [getCreateQuestionPage description]
 	 * @param  String HTML $createQuestionHTML
 	 * @return \common\view\Page
 	 */
 	public function getCreateQuestionPage($createQuestionHTML) {
-		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
-		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+		$this->addFormFiles();
 		$menu = $this->getMenu();
 		$navBar = $this->getNavBar();
-		$html = $this->getHeader(true);
 
-		$html .= "
-			<div class='col-xs-12 col-sm-9 col-md-6'>
+		$html = "
+			<div class='col-xs-12 col-sm-12 col-md-12'>
 				$createQuestionHTML
 			</div>";
-
-		$html .= $this->getFooter();
 
 		return new \common\view\Page("Add a question", $html, $menu, $navBar);
 	}
 
 	/**
-	 * [getListFormsPage description]
 	 * @param  string HTML $listFormsHTML 
 	 * @return \common\view\Page
 	 */
 	public function getListFormsPage($listFormsHTML) {
-		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
-		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
 		$menu = $this->getMenu();
 		$navBar = $this->getNavBar();
-		$html = $this->getHeader(true);
 
-		$html .= "
+		$html = "
 			<div class='col-xs-12 col-sm-12 col-md-12'>
 				$listFormsHTML
 			</div>";
-
-		$html .= $this->getFooter();
 
 		return new \common\view\Page("All Forms", $html, $menu, $navBar);
 	}
 
 	/**
-	 * [getAnswerFormPage description]
 	 * @param  String HTML $answerFormHTML
 	 * @return \common\view\Page
 	 */
 	public function getAnswerFormPage($answerFormHTML) {
-		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
-		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+		$this->addFormFiles();
 		$menu = $this->getMenu();
 		$navBar = $this->getNavBar();
-		$html = $this->getHeader(true);
 
-		$html .= "
+		$html = "
 			<div class='col-xs-12 col-sm-9 col-md-6'>
 				$answerFormHTML
 			</div>";
-
-		$html .= $this->getFooter();
 
 		return new \common\view\Page("Answer Form", $html, $menu, $navBar);
 	}
 
 	/**
-	 * [getFormResultPage description]
 	 * @param  string HTML $formResultHTML 
 	 * @return \common\view\Page
 	 */
 	public function getFormResultPage($formResultHTML) {
-		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
-		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
 		$this->pageView->addJavaScript("javascript/vendor/Chart.min.js");
 		$this->pageView->addJavaScript("javascript/resultPageCharts.js");
-
 		$menu = $this->getMenu();
 		$navBar = $this->getNavBar();
-		$html = $this->getHeader(true);
 
-		$html .= "
+		$html = "
 			<div class='col-xs-12 col-sm-12 col-md-12'>
 				$formResultHTML
 			</div>";
 
-		$html .= $this->getFooter();
-
 		return new \common\view\Page("Form Results", $html, $menu, $navBar);
-	}
-
-	/**
-	 * @param boolean $isLoggedIn
-	 * @return  String HTML
-	 */
-	private function getHeader($isLoggedIn) {
-		$ret =  "";
-		return $ret;
-		
-	}
-
-	/**
-	 * @return [type] [description]
-	 */
-	private function getFooter() {
-		return "";
 	}
 
 	/**
 	 * @return string HTML
 	 */
 	private function getMenu() {
+		$this->pageView->addStyleSheet("css/vendor/simple-sidebar.css");
+		$this->pageView->addJavaScript("javascript/vendor/simple-sidebar.js");
+		$this->pageView->addJavaScript("javascript/vendor/alertFade.js");
 		$home = $this->navigationView->getGoToHomeLink();
 		$create = $this->navigationView->getGoToCreateFormLink();
 		$listForms = $this->navigationView->getListFormsLink();
@@ -248,7 +205,7 @@ class Application {
 			        <li><a href='$create'>Create New Form</a></li>
 			        <li><a href='$listMyForms'>Manage My Forms</a></li>
 			        <li><a href='$listMySubmittedForms'>My Submitted Forms</a></li>
-			        <li><a href='$listForms'>Find Forms</a></li>
+			        <li><a href='$listForms'>Forms</a></li>
         		</ul>
       		</div>";
 	}
@@ -281,6 +238,14 @@ class Application {
 					</ul>
 				</div><!-- /.nav-collapse -->
 			</div><!-- /.navbar -->";
+	}
+
+	/**
+	 * Add form validation javascript
+	 */
+	private function addFormFiles() {
+		$this->pageView->addJavaScript("//cdnjs.cloudflare.com/ajax/libs/jquery-form-validator/2.1.15/jquery.form-validator.min.js");
+		$this->pageView->addJavaScript("javascript/validation.js");
 	}
 
 }

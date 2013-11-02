@@ -8,13 +8,15 @@ session_set_cookie_params(0, "/1DV408/Project", "", false, true);
 session_start();
 
 $dbConnection = \common\model\DbConnection::getInstance();
-$dbConnection->connect($dbServer, $dbUser, $dbPassword, $db);
-//$mysqli = new \mysqli($dbServer, $dbUser, $dbPassword, $db);
+try {
+	$dbConnection->connect($dbServer, $dbUser, $dbPassword, $db);
+} catch (\Exception $e) {
+	echo "Fatal database error.";
+	exit();
+}
 
 $pageView = new \common\view\PageView();
 $application = new \application\controller\Application($pageView);
-
-
 
 $page = $application->run();
 

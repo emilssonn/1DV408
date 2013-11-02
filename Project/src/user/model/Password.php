@@ -1,12 +1,16 @@
 <?php
 
-namespace authorization\model;
+namespace user\model;
 
-require_once("./vendor/Crypt.php");
+require_once("./src/vendor/Crypt.php");
 
+/**
+ * @author Daniel Toll - https://github.com/dntoll
+ * Changes by Peter Emilsson
+ */
 class Password {
-	private static $MINIMUM_PASSWORD_CHARACTERS = 6;
-	private static $MAXIMUM_PASSWORD_CHARACTERS = 16;
+	CONST MINIMUM_PASSWORD_CHARACTERS = 6;
+	CONST MAXIMUM_PASSWORD_CHARACTERS = 16;
 
 	/**
 	 * @var String
@@ -67,7 +71,7 @@ class Password {
 		return $this->encryptedPassword;
 	}
 
-	public function isSame(Password $password) {
+	public function isSame(\user\model\Password $password) {
 		return crypt($password->password, $this->password) == $this->password;
 	}
 
@@ -77,9 +81,9 @@ class Password {
 	 */
 	private static function isOkPassword($string) {
 		
-		if (strlen($string) < self::$MINIMUM_PASSWORD_CHARACTERS) {
+		if (strlen($string) < self::MINIMUM_PASSWORD_CHARACTERS) {
 			return false;
-		} else if (strlen($string) > self::$MAXIMUM_PASSWORD_CHARACTERS) {
+		} else if (strlen($string) > self::MAXIMUM_PASSWORD_CHARACTERS) {
 			return false;
 		}
 		return true;

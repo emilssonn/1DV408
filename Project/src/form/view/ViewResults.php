@@ -2,49 +2,64 @@
 
 namespace form\view;
 
-require_once("./src/form/model/FormObserver.php");
+require_once("./src/form/view/FormView.php");
 
-class ViewResults implements \form\model\FormObserver {
+/**
+ * @author Peter Emilsson
+ * Responsible for displaying compined results for a form
+ */
+class ViewResults extends \form\view\FormView {
 
+	/**
+	 * Colors for the charts, max number of diffrent answers per question = length of array or critical error
+	 * @var array
+	 */
 	private $colors = array("#F38630", "#4D5360", "#69D2E7", "#F7464A");
 
-	public function __construct(\application\view\Navigation $navigationView) {
-		$this->navigationView = $navigationView;
-	}
-
-	public function getHTML(\form\model\Form $form, $formResultsArray) {
+	/**
+	 * @param  \form\model\Form $form
+	 * @param  array of \form\model\QuestionResultCredentials $qResultCredArray 
+	 * @return string HTML
+	 */
+	public function getHTML(\form\model\Form $form, $qResultCredArray) {
 		$html = $this->getHeadHTML($form);
-		$html .= $this->getResultHTML($formResultsArray);
+		$html .= $this->getResultHTML($qResultCredArray);
 		return $html;
 	}
 
+	/**
+	 * @param  \form\model\Form $form
+	 * @return string HTML
+	 */
 	private function getHeadHTML(\form\model\Form $form) {
-		$formCred = $form->getFormCredentials();
-		$title = $formCred->getTitle();
-		$description = $formCred->getDescription();
-		$endDate = $formCred->getEndDate();
-		$id = $formCred->getId();
+		$title = $form->getTitle();
+		$description = $form->getDescription();
+		$endDate = $form->getEndDate();
+		$id = $form->getId();
 		$html = "
 			<div>
 				<h1>$title</h1>
 				<p class='lead'>$description</p>";
 
-		if (strtotime($endDate) < time()) {
+		if ($endDate->hasPassed()) {
 			$html .= "<h4>Ended: Yes</h4>
 					<p>Date: $endDate</p>";
 		} else {
 			$html .= "<h4>Ended: No</h4>
 					<p>Ends: $endDate</p>";
 		}
-
 		return $html;
 	}
 
-	private function getResultHTML($formResultsArray) {
+	/**
+	 * @param  array of \form\model\QuestionResultCredentials $qResultCredArray 
+	 * @return string HTML
+	 */
+	private function getResultHTML($qResultCredArray) {
 		$html = "";
-		foreach ($formResultsArray as $key => $questionResult) {
-			$qTitle = $questionResult->getTitle();
-			$qDescription = $questionResult->getQuestionDescription();
+		foreach ($qResultCredArray as $key => $qResultCred) {
+			$qTitle = $qResultCred->getTitle();
+			$qDescription = $qResultCred->getQuestionDescription();
 			$key += 1;
 			$html .= "
 				<div class='qResult row'>
@@ -53,10 +68,10 @@ class ViewResults implements \form\model\FormObserver {
 						<p>$qDescription</p>
 						<ul class='list-unstyled'>";
 
-			$answerResultsArray = $questionResult->getAnswersResult();
-			foreach ($answerResultsArray as $key => $answerResult) {
-				$aText = $answerResult->getText();
-				$aAmount = $answerResult->getAmount();
+			$aResultCredArray = $qResultCred->getAnswersResult();
+			foreach ($aResultCredArray as $key => $aResultCred) {
+				$aText = $aResultCred->getText();
+				$aAmount = $aResultCred->getAmount();
 				$color = $this->colors[$key];
 				$html .= "
 						<li>
@@ -75,28 +90,4 @@ class ViewResults implements \form\model\FormObserver {
 		}
 		return $html;
 	}
-
-	public function getFormId() {
-		$idGET = $this->navigationView->getForm();
-		if (empty($_GET[$idGET]))
-			throw new \Exception('No form id in url');
-		return $_GET[$idGET];
-	}
-
-	public function addFormOk(\form\model\FormCredentials $formCred) {
-
-	}
-
-	public function addFormFailed() {
-
-	}
-
-	public function getFormOk() {
-
-	}
-
-	public function getFormFailed() {
-
-	}
-
 }

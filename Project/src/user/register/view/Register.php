@@ -1,11 +1,15 @@
 <?php
 
-namespace register\view; 
+namespace user\register\view; 
 
 require_once("./src/common/Filter.php");
 require_once("./src/user/register/model/RegisterObserver.php");
 
-class Register implements \register\model\RegisterObserver {
+/**
+ * @author Peter Emilsson
+ * Responsible for registrating a user
+ */
+class Register implements \user\register\model\RegisterObserver {
 
 	/**
 	 * @var string
@@ -19,19 +23,16 @@ class Register implements \register\model\RegisterObserver {
 	 */
 	private $messages = array();
 
+	/**
+	 * @var \application\view\Navigation
+	 */
 	private $navigationView;
 
+	/**
+	 * @param \application\view\Navigation $navigationView
+	 */
 	public function __construct(\application\view\Navigation $navigationView) {
 		$this->navigationView = $navigationView;
-	}
-
-
-	/**
-	 * @return string HTML
-	 */
-	public function getRegisterLink() {
-		$register = $this->navigationView->getRegister();
-		return "<a href='?$register'>Registrera ny användare</a>";
 	}
 
 	/**
@@ -77,36 +78,41 @@ class Register implements \register\model\RegisterObserver {
 
 	/**
 	 * @return boolean
-	 * @throws Exception If passwords do not match
+	 * @throws \Exception If passwords do not match
 	 */
 	public function checkPasswords() {
 		if ($this->getPassword() != $this->getPassword(false)) {
-			$this->messages[] = "Lösenorden matchar inte";
+			$this->messages[] = \common\view\UserMessage::getMessageByKey(1102);
 			throw new \Exception("Passwords do not match");
 		}
 		return true;
 	}
 
 	/**
-	 * @return UserCredentials
+	 * @return \user\model\UserCredentials
+	 * @throws \Exception
 	 */
 	public function getUserCredentials() {
 		$flag = true;
 		try {
-			$usernameModel = new \authorization\model\UserName(\Common\Filter::trimString($this->getRawUserName()));
+			$usernameModel = new \user\model\UserName(\common\Filter::trimString($this->getRawUserName()));
+		} catch (\common\model\exception\StringLength $e) {
+			$flag = false;
+			$this->messages[] = sprintf(\common\view\UserMessage::getMessageByKey(1103),
+										\user\model\Username::MINIMUM_USERNAME_LENGTH);
 		} catch(\Exception $e) {
 			$flag = false;
-			$this->messages[] = "Användarnamnet har för få tecken. Minst 3 tecken";
 		}
 		try {
-			$passwordModel = \authorization\model\Password::fromCleartext($this->getPassword());
+			$passwordModel = \user\model\Password::fromCleartext($this->getPassword());
 		} catch (\Exception $e) {
 			$flag = false;
-			$this->messages[] = "Lösenorden har för få tecken. Minst 6 tecken";
+			$this->messages[] = sprintf(\common\view\UserMessage::getMessageByKey(1104),
+									\user\model\Password::MINIMUM_PASSWORD_CHARACTERS);
 		}
 		
 		if ($flag) {
-			return \authorization\model\UserCredentials::createFromClientData($usernameModel, $passwordModel);
+			return \user\model\UserCredentials::createFromClientData($usernameModel, $passwordModel);
 		} else {
 			throw new \Exception();
 		}
@@ -119,10 +125,10 @@ class Register implements \register\model\RegisterObserver {
 	private function getPassword($check = true) {
 		if ($check) {
 			if (isset($_POST[self::$PASSWORD]))
-				return \Common\Filter::sanitizeString($_POST[self::$PASSWORD]);
+				return \common\Filter::sanitizeString($_POST[self::$PASSWORD]);
 		} else {
 			if (isset($_POST[self::$CONTROLLPASSWORD]))
-				return \Common\Filter::sanitizeString($_POST[self::$CONTROLLPASSWORD]);
+				return \common\Filter::sanitizeString($_POST[self::$CONTROLLPASSWORD]);
 		}
 		return "";
 	}
@@ -131,8 +137,8 @@ class Register implements \register\model\RegisterObserver {
 	 * @return string
 	 */
 	private function getUserName() {
-		if (isset($_POST[self::$USERNAME]))
-			return \Common\Filter::sanitizeString($_POST[self::$USERNAME]);
+		if (isset($_POST[self::$USERNAME])) 
+			return \common\Filter::sanitizeString($_POST[self::$USERNAME]);
 		else
 			return "";
 	}
@@ -147,17 +153,21 @@ class Register implements \register\model\RegisterObserver {
 			return "";
 	}
 
+	/**
+	 * Observer implementation
+	 */
+	
 	public function registerFailed() {
-		if (\Common\Filter::hasTags($this->getRawUserName())) {
-			$this->messages[] = "Användarnamnet innehåller ogiltiga tecken";
+		if (\common\Filter::hasTags($this->getRawUserName())) {
+			$this->messages[] = \common\view\UserMessage::getMessageByKey(1105);
 		}	
 	}
 
 	public function userExists() {
-		$this->messages[] = "Användarnamnet är redan upptaget";
+		$this->messages[] = \common\view\UserMessage::getMessageByKey(1106);
 	}
 
 	public function registerOK() {
-		$this->messages[] = "Registrering av ny användare lyckades";
+		$this->messages[] = \common\view\UserMessage::getMessageByKey(1101);
 	}
 }

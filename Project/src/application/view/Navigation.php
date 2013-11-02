@@ -2,6 +2,9 @@
 
 namespace application\view;
 
+/**
+ * @author Peter Emilsson
+ */
 class Navigation {
 	
 	/**
@@ -18,13 +21,13 @@ class Navigation {
 
 	private static $formGET = "form";
 
-	private static $createFormGET = "create";
+	private static $createGET = "create";
 
-	private static $addQuestionGET = "question";
+	private static $questionGET = "question";
 
-	private static $showFormGET = "show";
+	private static $showGET = "show";
 
-	private static $editFormGET = "edit";
+	private static $editGET = "edit";
 
 	private static $listFormsGET = "list";
 
@@ -33,6 +36,12 @@ class Navigation {
 	private static $formResultGET = "result";
 
 	private static $mySubmittedFormsGET = "submitted"; 
+
+	private static $manageFormGET = "manage";
+
+	private static $deleteGET = "delete";
+
+	private static $publishFormGET = "publish";
 
 	/**
 	 * @return string
@@ -46,11 +55,11 @@ class Navigation {
 	}
 
 	public function getShowForm() {
-		return self::$showFormGET;
+		return self::$showGET;
 	}
 
 	public function getQuestion() {
-		return self::$addQuestionGET;
+		return self::$questionGET;
 	}
 
 	public function getLogOut() {
@@ -61,22 +70,24 @@ class Navigation {
 		return self::$registerGET;
 	}
 
-	/**
-	 * @return [type] [description]
-	 */
-	public function loginWithReturnUrl() {
-		header("Location: ?login&ref=" . $_SERVER["QUERY_STRING"]);
+	public function getEdit() {
+		return self::$editGET;
 	}
 
 	/**
-	 * @return String HTML
+	 * -----------------------------------------------------
+	 * Methods for getting links, ?xxxx
+	 */	
+
+	/**
+	 * @return String
 	 */
 	public function getLogoutLink() {
 		return "?" . self::$logoutGET;
 	}
 
 	/**
-	 * @return string
+	 * @return string html
 	 */
 	public function getRegisterLink() {
 		$register = $this->getRegister();
@@ -84,50 +95,76 @@ class Navigation {
 	}
 
 	/**
-	 * @param  [type] $id [description]
-	 * @return [type]     [description]
+	 * @param  int $id 
+	 * @return string
 	 */
 	public function getGoToFormLink($id) {
 		$form = self::$formGET;
-		$show = self::$showFormGET;
+		$show = self::$showGET;
 		return "?$form=$id&$show";
 	}
 
+	/**
+	 * @param  int $formId    
+	 * @param  int $userFormId 
+	 * @return string             
+	 */
 	public function getShowSubmittedFormLink($formId, $userFormId) {
 		$form = self::$formGET;
-		$show = self::$showFormGET;
+		$show = self::$showGET;
 		return "?$form=$formId&$show=$userFormId";
 	}
 
+	/**
+	 * @param  int $formId    
+	 * @param  int $userFormId
+	 * @return string           
+	 */
 	public function getEditSubmittedFormLink($formId, $userFormId) {
 		$form = self::$formGET;
-		$show = self::$showFormGET;
-		$edit = self::$editFormGET;
+		$show = self::$showGET;
+		$edit = self::$editGET;
 		return "?$form=$formId&$show=$userFormId&$edit";
 	}
 
-	public function getGoToEditFormLink($id) {
+	/**
+	 * @param  int $id 
+	 * @return string
+	 */
+	public function getGoToManageFormLink($id) {
 		$form = self::$formGET;
-		$edit = self::$editFormGET;
-		return "?$form=$id&$edit";
+		$manage = self::$manageFormGET;
+		return "?$form=$id&$manage";
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getGoToCreateFormLink() {
 		$form = self::$formGET;
-		$create = self::$createFormGET;
+		$create = self::$createGET;
 		return "?$form&$create";
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getGoToHomeLink() {
 		return "?home";
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getListFormsLink() {
 		$list = self::$listFormsGET;
 		$form = self::$formGET;
 		return "?$form&$list";
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getListMyFormsLink() {
 		$list = self::$listFormsGET;
 		$form = self::$formGET;
@@ -135,26 +172,64 @@ class Navigation {
 		return "?$form&$list&$my";
 	}
 
+	/**
+	 * @param  int $id
+	 * @return string
+	 */
 	public function getFormResultLink($id) {
 		$form = self::$formGET;
 		$result = self::$formResultGET;
 		return "?$form=$id&$result";
 	}
 
+	/**
+	 * @param  int $fid 
+	 * @return string
+	 */
 	public function getAddQuestionLink($fid) {
 		$form = self::$formGET;
-		$create = self::$createFormGET;
-		$add = self::$addQuestionGET;
-		return "?$form=$fid&$create&$add";
+		$create = self::$createGET;
+		$question = self::$questionGET;
+		return "?$form=$fid&$create&$question";
 	}
 
+	/**
+	 * @param  int $fId
+	 * @param  int $qId 
+	 * @return string
+	 */
 	public function getEditQuestionLink($fId, $qId) {
 		$form = self::$formGET;
-		$edit = self::$editFormGET;
-		$add = self::$addQuestionGET;
-		return "?$form=$fId&$edit&$add=$qId";
+		$edit = self::$editGET;
+		$question = self::$questionGET;
+		return "?$form=$fId&$edit&$question=$qId";
 	}
 
+	/**
+	 * @param  int $fId 
+	 * @param  int $qId 
+	 * @return string      
+	 */
+	public function getDeleteQuestionLink($fId, $qId) {
+		$delete = self::$deleteGET;
+		$question = self::$questionGET;
+		$form = self::$formGET;
+		return "?$form=$fId&$delete&$question=$qId";
+	}
+
+	/**
+	 * @param  int $fId 
+	 * @return string      
+	 */
+	public function getDeleteFormLink($fId) {
+		$delete = self::$deleteGET;
+		$form = self::$formGET;
+		return "?$form=$fId&$delete";
+	}
+
+	/**
+	 * @return string
+	 */
 	public function getListMySubmittedFormsLink() {
 		$list = self::$listFormsGET;
 		$form = self::$formGET;
@@ -163,8 +238,32 @@ class Navigation {
 	}
 
 	/**
+	 * @param  int $fId 
+	 * @return string      
+	 */
+	public function getPublishFormLink($fId) {
+		$manage = self::$manageFormGET;
+		$publish = self::$publishFormGET;
+		$form = self::$formGET;
+		return "?$form=$fId&$manage&$publish";
+	}
+
+	/**
+	 * @param  int $fId string
+	 * @return string      
+	 */
+	public function getEditFormLink($fId) {
+		$form = self::$formGET;
+		$edit = self::$editGET;
+		return "?$form=$fId&$edit";
+	}
+
+	/**
+	 * --------------------------------------------------------
+	 * Check what page to display/controller to user
 	 * @return boolean
 	 */
+
 	public function wantsToRegister() {
 		return isset($_GET[$this->getRegister()]);
 	}
@@ -175,20 +274,24 @@ class Navigation {
 
 	public function createForm() {
 		return isset($_GET[self::$formGET]) && 
-				isset($_GET[self::$createFormGET]);
+				isset($_GET[self::$createGET]);
 	}
 
-	public function editForm() {
+	public function manageForm() {
 		return isset($_GET[self::$formGET]) && 
-				isset($_GET[self::$editFormGET]) && !isset($_GET[self::$showFormGET]);
+				isset($_GET[self::$manageFormGET]) && !isset($_GET[self::$showGET]);
 	}
 
 	public function addQuestion() {
-		return isset($_GET[self::$formGET]) && isset($_GET[self::$createFormGET]) && isset($_GET[self::$addQuestionGET]);
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$createGET]) && isset($_GET[self::$questionGET]);
 	}
 
 	public function editQuestion() {
-		return isset($_GET[self::$formGET]) && isset($_GET[self::$editFormGET]) && isset($_GET[self::$addQuestionGET]);
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$editGET]) && isset($_GET[self::$questionGET]);
+	}
+
+	public function editForm() {
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$editGET]) && !isset($_GET[self::$questionGET]) && !isset($_GET[self::$showGET]);
 	}
 
 	public function listForms() {
@@ -200,7 +303,7 @@ class Navigation {
 	}
 
 	public function answerForm() {
-		return isset($_GET[self::$formGET]) && isset($_GET[self::$showFormGET]) && !isset($_GET[self::$editFormGET]) && empty($_GET[self::$showFormGET]);
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$showGET]) && !isset($_GET[self::$editGET]) && empty($_GET[self::$showGET]);
 	}
 
 	public function viewResults() {
@@ -209,34 +312,60 @@ class Navigation {
 
 	public function listMySubmittedForms() {
 		return isset($_GET[self::$formGET]) && isset($_GET[self::$mySubmittedFormsGET]) && isset($_GET[self::$listFormsGET]);
-		
 	}
 
 	public function showMySubmittedForm() {
-		return isset($_GET[self::$formGET]) && isset($_GET[self::$showFormGET]);
+		return isset($_GET[self::$formGET]) && isset($_GET[self::$showGET]);
 	}
+
+	public function delete() {
+		return isset($_GET[self::$deleteGET]);
+	}
+
+	public function publishForm() {
+		return $this->manageForm() &&
+				isset($_GET[self::$publishFormGET]);
+	}
+
+	/**
+	 * --------------------------------------------
+	 * Header location methods
+	 */
 
 	public function goToHome() {
 		$home = self::$homeGET;
 		header("Location: ?$home");
 	}
 
+	/**
+	 * @param  int $id
+	 */
 	public function goToForm($id) {
 		$form = self::$formGET;
-		$show = self::$showFormGET;
+		$show = self::$showGET;
 		header("Location: ?$form=$id&$show");
 	}
 
-	public function goToEditForm($id) {
+	/**
+	 * @param  int $id 
+	 */
+	public function goToManageForm($id) {
 		$form = self::$formGET;
-		$edit = self::$editFormGET;
-		header("Location: ?$form=$id&$edit");
+		$manage = self::$manageFormGET;
+		header("Location: ?$form=$id&$manage");
 	}
 
+	/**
+	 * @param  int $formId     
+	 * @param  int $userFormId 
+	 */
 	public function goToShowSubmittedForm($formId, $userFormId) {
 		$form = self::$formGET;
-		$show = self::$showFormGET;
+		$show = self::$showGET;
 		header("Location: ?$form=$formId&$show=$userFormId");
 	}
 
+	public function loginWithReturnUrl() {
+		header("Location: ?login&ref=" . $_SERVER["QUERY_STRING"]);
+	}
 }

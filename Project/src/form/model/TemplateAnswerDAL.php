@@ -4,25 +4,50 @@ namespace form\model;
 
 require_once("./src/common/model/DbConnection.php");
 
+/**
+ * @author Peter Emilsson
+ * Responisble for the main actions to the template_answer table
+ * All functions with database querys will throw \Exception on error
+ */
 class TemplateAnswerDAL {
 
+	/**
+	 * Table name
+	 * @var string
+	 */
 	private static $templateAnswerTable = "template_answer";
 
+	/**
+	 * @var \common\model\DbConnection
+	 */
 	private $dbConnection;
 
+	/**
+	 * @var \user\model\UserCredentials
+	 */
 	private $user;
 
-	public function __construct(\authorization\model\UserCredentials $user = null) {
+	public function __construct(\user\model\UserCredentials $user = null) {
 		$this->dbConnection = \common\model\DbConnection::getInstance();
 		$this->user = $user;
 	}
 
+	/**
+	 * Make access public for other DAL classes to use
+	 * Ex in JOIN statements
+	 * @return string
+	 */
 	public function getTemplateAnswerTable() {
 		return self::$templateAnswerTable;
 	}
 
-	public function getAnswersByQuestion($question) {
-		$qId = $question->getId();
+	/**
+	 * @param  form\model\QuestionCredentials $qCred
+	 * @return array of \form\model\AnswerCredentials
+	 * @throws \Exception If database query fails
+	 */
+	public function getAnswersByQuestion(\form\model\QuestionCredentials $qCred) {
+		$qId = $qCred->getId();
 		$answers = array();
 		$sql = 'SELECT
 				id,
@@ -45,9 +70,15 @@ class TemplateAnswerDAL {
                 	$object["id"]);
         }
 
+        $statement->free_result();
         return $answers;
 	}
 
+	/**
+	 * @param  array of \form\model\AnswerCredentials $aCreds
+	 * @param  int $qId  
+	 * @throws \Exception If database query fails 
+	 */
 	public function insertAnswers($aCreds, $qId) {
 		$sql = "INSERT INTO " . self::$templateAnswerTable . "
 				(
@@ -65,6 +96,11 @@ class TemplateAnswerDAL {
 		}
 	}
 
+	/**
+	 * @param  array of \form\model\AnswerCredentials $aCreds
+	 * @param  int $qId   
+	 * @throws \Exception If database query fails
+	 */
 	public function updateAnswers($aCreds, $qId) {
 		$sql = "UPDATE " . self::$templateAnswerTable . "
 				SET
@@ -79,5 +115,4 @@ class TemplateAnswerDAL {
 			"ssiii");
 		}
 	}
-
 }

@@ -1,7 +1,11 @@
 <?php
 
-namespace authorization\model;
+namespace user\authorization\model;
 
+/**
+ * @author Daniel Toll - https://github.com/dntoll
+ * Changes by Peter Emilsson
+ */
 class User {
 
 	/**
@@ -24,7 +28,7 @@ class User {
 	 * Only called at login and then saved in session
 	 * @param UserCredentials $user      logged in user
 	 */
-	public function __construct(UserCredentials $user) {
+	public function __construct(\user\model\UserCredentials $user) {
 		$this->user = $user;
 		$this->ipAdress = $_SERVER["REMOTE_ADDR"];
 		$this->userAgent = $_SERVER["HTTP_USER_AGENT"];

@@ -2,6 +2,10 @@
 
 namespace common;
 
+/**
+ * @author Daniel Toll - https://github.com/dntoll
+ * Changes by Peter Emilsson
+ */
 class Filter {
 	/**
 	 * trim and strip tags from string

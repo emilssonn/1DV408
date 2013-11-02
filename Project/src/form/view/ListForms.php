@@ -2,151 +2,140 @@
 
 namespace form\view;
 
-require_once("./src/form/model/FormObserver.php");
-require_once("./src/form/model/FormCredentials.php");
+require_once("./src/form/view/FormView.php");
+require_once("./src/form/model/Form.php");
 
-class ListForms implements \form\model\FormObserver {
+/**
+ * @author Peter Emilsson
+ * Class responsible for listing forms
+ */
+class ListForms extends \form\view\FormView {
 
-	private $navigationView;
-
-	public function __construct(\application\view\Navigation $navigationView) {
-		$this->navigationView = $navigationView;
-	}
-
-	public function getSubmittedFormsHTML($forms) {
-		$html = "
-				<ul class='list-unstyled'>";
-		foreach ($forms as $form) {
-			$html .= $this->getSubmittedPanelHTML($form);
-		}
-		$html .= "</ul>";
+	/**
+	 * @param  array of \form\model\SubmittedFormCredentials $submittedFormsCredArray
+	 * @return string HTML
+	 */
+	public function getSubmittedFormsHTML($submittedFormsCredArray) {
+		$html = "";
+		if (count($submittedFormsCredArray) > 0) {
+			$html .= "
+					<ul class='list-unstyled'>";
+			foreach ($submittedFormsCredArray as $form) {
+				$html .= $this->getSubmittedPanelHTML($form);
+			}
+			$html .= "</ul>";
+		} else
+			$html = "<h2>You have not submitted any forms</h2>";
 		return $html;
 	}
 
-	private function getSubmittedPanelHTML($form) {
-		$title = $form->getTitle();
-		$description = $form->getDescription();
-		$endDate = $form->getEndDate();
-		$formId = $form->getFormId();
-		$submitted = $form->getSubmittedDate();
-		$lastUpdateDate = $form->getLastUpdatedDate();
-		$authorId = $form->getAuthorId();
-		$userFormId = $form->getUserFormId();
-		$link = $this->navigationView->getShowSubmittedFormLink($formId, $userFormId);
-		$html = "
-			<li>
-				<div class='panel panel-default'>
-  					<div class='panel-heading'>
-  						<h3 class='panel-title'>$title <small>by $authorId</small></h3>
-  					</div>
- 					<div class='panel-body'>
-    					$description
-    					<br/>
-    					<ul class='list-inline'>
-    						<li>Submitted: $submitted</li>
-    						<li>Last Updated: $lastUpdateDate</li>";
-
-    	if (strtotime($endDate) < time()) {
-    		$html .= "		<li>Ended: Yes</li>";
-    	} else {
-    		$html .= "		<li>Ended: No</li>";
-    	}
-
-    	$html .= "			<li>End Date: $endDate</li>
-    					</ul>
-    					<span class='pull-right'>
-    						<a href='$link'>Open</a>
-  					</div>
-				</div>
-			</li>";
-		return $html;
-	}
-
-	public function getHTML($forms, $manage = false) {
+	/**
+	 * @param  \form\model\FormCollection  $formCollection
+	 * @param  boolean $manage      
+	 * @return string HTML
+	 */
+	public function getHTML($formCollection, $manage = false) {
 		$html = "";
 		if ($manage) {
-			$html = $this->getManageHTML($forms);
+			$html = $this->getManageHTML($formCollection);
 		} else {
-			if ($forms != null) {
+			if ($formCollection->count() > 0) {
 				$html = "
 					<ul class='list-unstyled'>";
 
-				foreach ($forms as $form) {
-					$title = $form->getTitle();
-					$description = $form->getDescription();
-					$endDate = $form->getEndDate();
-					$id = $form->getId();
-					$createdDate = $form->getCreatedDate();
-					$lastUpdateDate = $form->getLastUpdatedDate();
-					$authorId = $form->getAuthorId();
-					$link = $this->navigationView->getGoToFormLink($id);
-
-					
-
-					$html .= $this->getPanelHTML($title, $description, $endDate, $id, 
-						$createdDate, $lastUpdateDate, $authorId, $link, $manage);
+				foreach ($formCollection as $form) {
+					$html .= $this->getPanelHTML($form, $manage);
 				}
 
 				$html .= "</ul>";
-			}
+			} else
+				$html = "<h2>No forms</h2>";
 		}
 		return $html;
 	}
 
-	private function getManageHTML($forms) {
+	/**
+	 * @param  \form\model\FormCollection  $formCollection
+	 * @return string HTML
+	 */
+	private function getManageHTML($formCollection) {
+		$publishedAndActive = $formCollection->getPublishedAndActive();
+		$ended = $formCollection->getEnded();
+		$notPublished = $formCollection->getNotPublished();
+
 		$html = "
 			<ul class='list-unstyled'>
-				<li>Published and active
+				<li><h3>Published and active</h3>
 					<ul class='list-unstyled'>";
 
-		$published = true;
-		$finnshed = true;
-		foreach ($forms as $form) {
-			$title = $form->getTitle();
-			$description = $form->getDescription();
-			$endDate = $form->getEndDate();
-			$id = $form->getId();
-			$createdDate = $form->getCreatedDate();
-			$lastUpdateDate = $form->getLastUpdatedDate();
-			$authorId = $form->getAuthorId();
-			$link = $this->navigationView->getGoToFormLink($id);
+		$html .= $this->getFormsHTML($publishedAndActive);
 
-			if (!$form->isPublished() && $published) {
-				$html .= "
+		$html .= "
 					</ul>
 				</li>
 				<li>
 					<ul class='list-unstyled'>
-						<li>Not Published
+						<li><h3>Not Published</h3>
 							<ul class='list-unstyled'>";
-				$published = false;
-			}
-			if (strtotime($endDate) < time() && $finnshed) {
-				$html .= "
+
+		$html .= $this->getFormsHTML($notPublished);
+
+		$html .= "		</li>
 					</ul>
 				</li>
 				<li>
 					<ul class='list-unstyled'>
-						<li>Finnished
+						<li><h3>Finnished</h3>
 							<ul class='list-unstyled'>";
-				$finnshed = false;
-			}
 
-			$html .= $this->getPanelHTML($title, $description, $endDate, $id, 
-				$createdDate, $lastUpdateDate, $authorId, $link, true);
+		$html .= $this->getFormsHTML($ended);
+
+		$html .= "			</ul>
+						</li>
+					</ul>
+				</li>
+			</ul>";
+
+		return $html;
+	} 
+
+	/**
+	 * @param  array of \form\model\Form $formArray
+	 * @return string HTML
+	 */
+	private function getFormsHTML($formArray) {
+		$html = "";
+		if (count($formArray) > 0) {
+			foreach ($formArray as $form) {
+				$html .= $this->getPanelHTML($form, true);
+			}
+		} else {
+			$html .= "<li><h4>None</h4></li>";
 		}
-
-		$html .= "</ul></li></ul>";
 		return $html;
 	}
 
-	private function getPanelHTML(	$title, $description, $endDate, $id, $createdDate, 
-									$lastUpdateDate, $authorId, $link, $manage) {
+	/**
+	 * @param  \form\model\Form $form
+	 * @param  bool $manage 
+	 * @return string HTML
+	 */
+	private function getPanelHTML(\form\model\Form $form, $manage) {
+		$title = $form->getTitle();
+		$description = $form->getDescription();
+		$endDate = $form->getEndDate();
+		$id = $form->getId();
+		$createdDate = $form->getCreatedDate();
+		$lastUpdateDate = $form->getLastUpdatedDate();
+		$author = $form->getAuthor();
+		$authorName = $author->getUsername();
+		$link = $this->navigationView->getGoToFormLink($id);
+
 		$html = "
 			<li>
 				<div class='panel panel-default'>
   					<div class='panel-heading'>
-  						<h3 class='panel-title'>$title <small>by $authorId</small></h3>
+  						<h3 class='panel-title'>$title <small>by $authorName</small></h3>
   					</div>
  					<div class='panel-body'>
     					$description
@@ -160,7 +149,7 @@ class ListForms implements \form\model\FormObserver {
     						<a href='$link'>Open</a>";
 
     	if ($manage) {
-    		$editLink = $this->navigationView->getGoToEditFormLink($id);
+    		$editLink = $this->navigationView->getGoToManageFormLink($id);
     		$resultLink = $this->navigationView->getFormResultLink($id);
     		$html .= "		<a href='$editLink'>Manage</a>
     						<a href='$resultLink'>Results</a>";
@@ -174,21 +163,57 @@ class ListForms implements \form\model\FormObserver {
 		return $html;
 	}
 
+	/**
+	 * @param  \form\model\SubmittedFormCredentials $submittedFormCred
+	 * @return string HTML
+	 */
+	private function getSubmittedPanelHTML(\form\model\SubmittedFormCredentials $submittedFormCred) {
+		$title = $submittedFormCred->getTitle();
+		$description = $submittedFormCred->getDescription();
+		$endDate = $submittedFormCred->getEndDate();
+		$formId = $submittedFormCred->getFormId();
+		$submitted = $submittedFormCred->getSubmittedDate();
+		$lastUpdateDate = $submittedFormCred->getLastUpdatedDate();
+		$author = $submittedFormCred->getAuthor();
+		$authorName = $author->getUsername();
+		$userFormId = $submittedFormCred->getUserFormId();
+		$link = $this->navigationView->getShowSubmittedFormLink($formId, $userFormId);
+		$html = "
+			<li>
+				<div class='panel panel-default'>
+  					<div class='panel-heading'>
+  						<h3 class='panel-title'>$title <small>by $authorName</small></h3>
+  					</div>
+ 					<div class='panel-body'>
+    					$description
+    					<br/>
+    					<ul class='list-inline'>
+    						<li>Submitted: $submitted</li>
+    						<li>Last Updated: $lastUpdateDate</li>";
 
+    	if ($endDate->hasPassed()) {
+    		$html .= "		<li>Ended: Yes</li>";
+    	} else {
+    		$html .= "		<li>Ended: No</li>";
+    	}
 
-	public function addFormOk(\form\model\FormCredentials $formCred) {
+    	$html .= "			<li>End Date: $endDate</li>
+    					</ul>
+    					<span class='pull-right'>
+    						<a href='$link'>Open</a>
+  					</div>
+				</div>
+			</li>";
+		return $html;
+	} 
 
-	}
+	/**
+	 * Formobserver implementation
+	 */
 
-	public function addFormFailed() {
-
-	}
-
-	public function getFormOk() {
-
-	}
-
-	public function getFormFailed() {
-
+	public function getFailed($fId = null, $qId = null) {
+		$this->saveMessage(1204);
+		$this->navigationView->goToHome();
+		exit();//Exit script
 	}
 }

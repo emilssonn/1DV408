@@ -1,11 +1,16 @@
 <?php
 
-namespace register\controller; 
+namespace user\register\controller; 
 
 require_once("./src/user/register/model/Register.php");
 require_once("./src/user/register/view/Register.php");
+require_once("./src/common/controller/IController.php");
 
-class Register {
+/**
+ * @author Peter Emilsson
+ * Responsible for registrating a user
+ */
+class Register implements \common\controller\IController {
 
 	/**
 	 * @var \register\view\Register
@@ -27,11 +32,11 @@ class Register {
 	 */
 	private $regSuccessfull = false;
 
-	public function __construct(\register\view\Register $registerView, 
-								\authorization\view\Login $loginView) {
+	public function __construct(\user\register\view\Register $registerView, 
+								\user\authorization\view\Login $loginView) {
 		$this->registerView = $registerView;
 		$this->loginView = $loginView;
-		$this->registerModel = new \register\model\Register();
+		$this->registerModel = new \user\register\model\Register();
 	}
 
 	/**
@@ -41,13 +46,7 @@ class Register {
 		return $this->regSuccessfull;
 	}
 
-	/**
-	 * Handle input
-	 * Make sure to log statechanges
-	 *
-	 * note this has no output, output goes through views that are called seperately
-	 */
-	public function doToggleRegister() {
+	public function run() {
 		if ($this->registerView->isRegistrating() ) {
 			try {
 				if ($this->registerView->checkPasswords()) {
@@ -60,7 +59,6 @@ class Register {
 			} catch (\Exception $e) {
 				$this->registerView->registerFailed();
 			}
-		}
-		
+		}	
 	}
 }

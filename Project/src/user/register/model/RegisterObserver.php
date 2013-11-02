@@ -1,8 +1,9 @@
 <?php
 
-namespace register\model;
+namespace user\register\model;
 
 /**
+ * @author Peter Emilsson
  * Callback interface
  */
 interface RegisterObserver {

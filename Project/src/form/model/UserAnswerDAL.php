@@ -6,19 +6,41 @@ require_once("./src/common/model/DbConnection.php");
 require_once("./src/form/model/QuestionResultCredentials.php");
 require_once("./src/form/model/AnswerResultCredentials.php");
 
+/**
+ * @author Peter Emilsson
+ * Class used to access the table "user_answer"
+ * All functions throws \Exception on error
+ */
 class UserAnswerDAL {
 
+	/**
+	 * @var string
+	 */
 	private static $userAnswerTable = "user_answer";
 
+	/**
+	 * @var \common\model\DbConnection
+	 */
 	private $dbConnection;
 
+	/**
+	 * @var \user\model\UserCredentials
+	 */
 	private $user;
 
-	public function __construct(\authorization\model\UserCredentials $user = null) {
+	/**
+	 * @param \user\model\UserCredentials $user, logged in user
+	 */
+	public function __construct(\user\model\UserCredentials $user = null) {
 		$this->dbConnection = \common\model\DbConnection::getInstance();
 		$this->user = $user;
 	}
 
+	/**
+	 * @param  \form\model\Form $form
+	 * @return array of \form\model\QuestionResultCredentials
+	 * @throws \Exception If database query fails
+	 */
 	public function getFormResult(\form\model\Form $form) {
 		$templateAnswerDAL = new \form\model\TemplateAnswerDAL();
 		$questionResultsArray = array();
@@ -27,53 +49,68 @@ class UserAnswerDAL {
 
 		foreach ($form->getQuestions() as $question) {
 			$sql = "SELECT 
-				$userAnswerTable.answer_id,
-				COUNT(1) as amount,
+				$templateAnswerTable.id,
+				COUNT($userAnswerTable.answer_id) as amount,
 				$templateAnswerTable.title
 				FROM $userAnswerTable
-				INNER JOIN $templateAnswerTable
-					ON $userAnswerTable.answer_id = $templateAnswerTable.id 
-				WHERE $userAnswerTable.question_id = ? 
-				GROUP BY $userAnswerTable.answer_id";
+				RIGHT OUTER JOIN $templateAnswerTable
+					ON  $userAnswerTable.answer_id = $templateAnswerTable.id
+				WHERE $templateAnswerTable.question_id = ? 
+				GROUP BY $templateAnswerTable.id";
 			
 			$qId = $question->getId();
 			$qTitle = $question->getTitle();
 			$qDescription = $question->getDescription();
 
-			$statement = $this->dbConnection->runSql($sql, 
+			$stmt = $this->dbConnection->runSql($sql, 
 					array($qId),
 					"i");
 
-			$result = $statement->get_result();
+			$result = $stmt->get_result();
             
             $questionResultCred = new \form\model\QuestionResultCredentials($qId, $qTitle, $qDescription);
 	        while ($object = $result->fetch_array(MYSQLI_ASSOC)) {
 	        	$questionResultCred->addAnswerResult(
 	        		new \form\model\AnswerResultCredentials(
-	        			$object['answer_id'], $object['amount'], $object['title']));
+	        			$object['id'], $object['amount'], $object['title']));
 	        }
 	        $questionResultsArray[] = $questionResultCred;
+	        $stmt->free_result();
 		}
-
+		
 		return $questionResultsArray;
 	}
 
-	public function insertUserAnswers($answerViewCredentialsArray, $id) {
+	/**
+	 * @param  array of \form\model\AnswerViewCredentials $answerViewCredentialsArray
+	 * @param  int $userFormId
+	 * @throws \Exception If database query fails
+	 */
+	public function insertUserAnswers($answerViewCredentialsArray, $userFormId) {
 		$sql = "INSERT INTO " . self::$userAnswerTable . "
 				(
 					user_form_id,
 					question_id,
-					answer_id
+					answer_id,
+					note_text,
+					comment_text
 				)
-				VALUES(?, ?, ?)";
+				VALUES(?, ?, ?, ?, ?)";
 
 		foreach ($answerViewCredentialsArray as $aCred) {
-			$statement = $this->dbConnection->runSql($sql, 
-			array($id, $aCred->getQuestionId(), $aCred->getAnswerId()),
-			"iii");
+			$answer = $aCred->getAnswer();
+			$this->dbConnection->runSql($sql, 
+				array($userFormId, $aCred->getQuestionId(), $answer->getAnswerId(), 
+					$answer->getNoteText(), $aCred->getCommentText()),
+				"iiiss");
 		}
 	}
 
+	/**
+	 * @param  int $userFormId
+	 * @return array of \form\model\QuestionViewCredentials
+	 * @throws \Exception If database query fails
+	 */
 	public function getUserFormResult($userFormId) {
 		$userAnswerTable = self::$userAnswerTable;
 		$ret = array();
@@ -81,36 +118,44 @@ class UserAnswerDAL {
 				id,
 				question_id,
 				answer_id,
-				note_text
+				note_text,
+				comment_text
 				FROM $userAnswerTable 
 				WHERE user_form_id = ? 
 				ORDER BY question_id ASC";
 
-		$statement = $this->dbConnection->runSql($sql, 
+		$stmt = $this->dbConnection->runSql($sql, 
 				array($userFormId),
 				"i");
             
-        $result = $statement->get_result();
+        $result = $stmt->get_result();
 
         while ($object = $result->fetch_array(MYSQLI_ASSOC)) {
-                $ret[] = \form\model\AnswerViewCredentials::createFull(
-                	$object["id"], 
-                	$object["question_id"], 
-                	$object["answer_id"], 
-                	$object["note_text"]);
+        		$answerViewCred = new \form\model\AnswerViewCredentials($object["answer_id"], $object["note_text"]);
+        		$ret[] = \form\model\QuestionViewCredentials::createFull(
+        			$object["id"], 
+        			$object["question_id"], 
+        			$object["comment_text"], 
+        			$answerViewCred);
         }
-		$statement->free_result();
-
+		
+		$stmt->free_result();
 		return $ret;
 	}
 
-	public function updateUserAnswers($submittedFormCredentials, $answers) {
-		$answerResults = $submittedFormCredentials->getAnswersResult();
+	/**
+	 * @param  \form\model\SubmittedFormCredentials $submittedFormCredentials
+	 * @param  array ?form\model\QuestionViewCredentials $answers                       
+	 * @throws \Exception If database query fails                  
+	 */
+	public function updateUserAnswers(\form\model\SubmittedFormCredentials $submittedFormCredentials, 
+										$answers) {
+		$questionViewCredentials = $submittedFormCredentials->getAnswersResult();
 		$updateAnswers = array();
 		$insertAnswers = array();
 		foreach ($answers as $answer) {
 			$removeIndex = null;
-			foreach ($answerResults as $key => $value) {
+			foreach ($questionViewCredentials as $key => $value) {
 				if ($answer->getQuestionId() == $value->getQuestionId()) {
 					$answer->setId($value->getId());
 					$updateAnswers[] = $answer;
@@ -119,8 +164,8 @@ class UserAnswerDAL {
 				}
 			}
 			if (is_numeric($removeIndex)) {
-				unset($answerResults[$removeIndex]);
-				$answerResults = array_values($answerResults);
+				unset($questionViewCredentials[$removeIndex]);
+				$questionViewCredentials = array_values($questionViewCredentials);
 			} else {
 				$insertAnswers[] = $answer;
 			}
@@ -132,21 +177,24 @@ class UserAnswerDAL {
 			$this->insertUserAnswers($insertAnswers, $submittedFormCredentials->getUserFormId());
 	}
 
+	/**
+	 * @param  array of form\model\QuestionViewCredentials $updateAnswers 
+	 * @throws \Exception If database query fails        
+	 */
 	private function updateOldAnswers($updateAnswers) {
 		$userAnswerTable = self::$userAnswerTable;
-		$sql = "UPDATE $userAnswerTable 
-				SET answer_id = CASE id ";
-		$ids = "";
-		//Build sql to only have one database query
+		$statement;
+		$sql = "UPDATE $userAnswerTable
+				SET answer_id = ?,
+					note_text = ?,
+					comment_text = ?
+				WHERE id = ?";
+
 		foreach ($updateAnswers as $key => $value) {
-			$sql .= sprintf("WHEN %d THEN %d ", $value->getId(), $value->getAnswerId());
-			if ($key == 0) {
-				$ids .= $value->getId();
-			} else {
-				$ids .= ", " . $value->getId();
-			}
+			$answer = $value->getAnswer();
+			$this->dbConnection->runSql($sql, 
+			array($answer->getAnswerId(), $answer->getNoteText(),  $value->getCommentText(), $value->getId()),
+			"issi");
 		}
-		$sql .= "END WHERE id IN ($ids)";
-		$statement = $this->dbConnection->runSql($sql);
 	}
 }

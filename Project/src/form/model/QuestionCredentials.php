@@ -2,50 +2,139 @@
 
 namespace form\model;
 
+require_once("./src/form/model/exception/TitleLength.php");
+require_once("./src/form/model/exception/DescriptionLength.php");
+
+/**
+ * @author Peter Emilsson
+ * Represnts a template question
+ */
 class QuestionCredentials {
 
+	/**
+	 * @var int
+	 */
 	private $id;
 
+	/**
+	 * @var string
+	 */
 	private $title;
 
+	/**
+	 * @var string
+	 */
 	private $description;
 
-	private $answers = array();
+	/**
+	 * @var bool
+	 */
+	private $required;
 
-	private static $minStringLength = 5;
+	/**
+	 * @var bool
+	 */
+	private $commentText;
 
-	private static $maxTitleLength = 50;
+	/**
+	 * @var array of \form\model\AnswerCredentials
+	 */
+	private $answerCredentialsArray = array();
 
-	private static $maxDescription = 200;
+	/**
+	 * @var integer
+	 */
+	CONST MinStringLength = 5;
 
-	private function __construct($title, $description, $id = null) {
+	/**
+	 * @var integer
+	 */
+	CONST MaxTitleLength = 200;
+
+	/**
+	 * @var integer
+	 */
+	CONST MaxDescriptionLength = 600;
+
+	/**
+	 * @param string $title      
+	 * @param string $description 
+	 * @param bool $required   
+	 * @param bool $commentText
+	 * @param int $id         
+	 */
+	private function __construct($title, $description, $required, $commentText, $id = null) {
 		$this->validateTitle($title);
 		$this->validateDescription($description);
 		$this->title = $title;
 		$this->description = $description;
+		$this->required = $required;
+		$this->commentText = $commentText;
 		$this->id = $id;
 	}
 
-	public static function createBasic($title, $description) {
-		return new \form\model\QuestionCredentials($title, $description);
+	/**
+	 * @param  string $title       
+	 * @param  string $description 
+	 * @param  bool $required    
+	 * @param  bool $commentText 
+	 * @return \form\model\QuestionCredentials
+	 */
+	public static function createBasic($title, $description, $required, $commentText) {
+		return new \form\model\QuestionCredentials($title, $description, $required, $commentText);
 	}
 
-	public static function createFull($title, $description, $id) {
-		return new \form\model\QuestionCredentials($title, $description, $id);
+	/**
+	 * @param  string $title       
+	 * @param  string $description 
+	 * @param  int $id          
+	 * @param  bool $required    
+	 * @param  bool $commentText 
+	 * @return \form\model\QuestionCredentials
+	 */
+	public static function createFull($title, $description, $id, $required, $commentText) {
+		return new \form\model\QuestionCredentials($title, $description, $required, $commentText, $id);
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getTitle() {
 		return $this->title;
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getDescription() {
 		return $this->description;
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getId() {
 		return $this->id;
 	}
 
+	/**
+	 * @return boolean
+	 */
+	public function isRequired() {
+		return $this->required;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function commentText() {
+		return $this->commentText;
+	}
+
+	/**
+	 * @param int $id
+	 * @throws \Exception If if id is allready set or not int
+	 */
 	public function setId($id) {
 		if ($this->id != null) {
 			throw new \Exception('Id already set');
@@ -54,31 +143,60 @@ class QuestionCredentials {
 		}
 	}
 
+	/**
+	 * @param  int $aId 
+	 * @return \form\model\AnswerCredentials
+	 * @throws \Exception If no answer is found
+	 */
+	public function getAnswerById($aId) {
+		foreach ($this->answerCredentialsArray as $answer) {
+			if ($answer->getId() == $aId)
+				return $answer;
+		}
+		throw new \Exception("Answer not found");
+	}
+
+	/**
+	 * @param \form\model\AnswerCredentials $answer
+	 */
 	public function addAnswer(\form\model\AnswerCredentials $answer) {
-		$this->answers[] = $answer;
+		$this->answerCredentialsArray[] = $answer;
 	}
 
-	public function addAnswers($answers) {
-		$this->answers = array_merge($this->answers, $answers);
+	/**
+	 * @param array of \form\model\AnswerCredentials $aCredArray
+	 */
+	public function addAnswers($aCredArray) {
+		$this->answerCredentialsArray = array_merge($this->answerCredentialsArray, $aCredArray);
 	}
 
+	/**
+	 * @return array of \form\model\AnswerCredentials
+	 */
 	public function getAnswers() {
-		return $this->answers;
+		return $this->answerCredentialsArray;
 	}
 
+	/**
+	 * @param  string $title
+	 * @throws \form\model\exception\TitleLength If title do not validate
+	 */
 	private function validateTitle($title) {
-		if (strlen($title) < self::$minStringLength ||
-			strlen($title) > self::$maxTitleLength) {
-			throw new \Exception('Question title not valid');
+		if (strlen($title) < self::MinStringLength ||
+			strlen($title) > self::MaxTitleLength) {
+			throw new \form\model\exception\TitleLength(self::MinStringLength, self::MaxTitleLength);
 		}
 	}
 
+	/**
+	 * @param  string $description 
+	 * @throws \form\model\exception\DescriptionLength If description do not validate
+	 */
 	private function validateDescription($description) {
-		if (strlen($description) < self::$minStringLength ||
-			strlen($description) > self::$maxDescription) {
-			throw new \Exception('Question description not valid');
+		if (!empty($description) && 
+			(strlen($description) < self::MinStringLength ||
+			strlen($description) > self::MaxDescriptionLength)) {
+			throw new \form\model\exception\DescriptionLength(self::MinStringLength, self::MaxDescriptionLength);
 		}
 	}
-	
-	
 }

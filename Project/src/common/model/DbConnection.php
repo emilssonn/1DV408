@@ -2,11 +2,29 @@
 
 namespace common\model;
 
+/**
+ * @author Peter Emilsson
+ * Final class for database operations
+ * This class should not and can not be extended
+ * This class is a singleton class.
+ * It can only be created once.
+ */
 final class DbConnection {
 
+	/**
+	 * @var \common\model\DbConnection
+	 */
 	private static $instance = null;
+
+	/**
+	 * @var \mysqli
+	 */
 	private $mysqli;
 
+	/**
+	 * Returns the created instace of the class, or create one if none exists
+	 * @return \common\model\DbConnection
+	 */
 	public static function getInstance() {
 		if (!isset(self::$instance)) {
             self::$instance = new self;
@@ -28,6 +46,14 @@ final class DbConnection {
 
 	}
 
+	/**
+	 * Connect to the database
+	 * @param  string $dbServer   
+	 * @param  string $dbUser     
+	 * @param  string $dbPassword 
+	 * @param  string $db         
+	 * @throws \Exception If connection to database failed
+	 */
 	public function connect($dbServer, $dbUser, $dbPassword, $db) {
 		$this->mysqli = new \mysqli($dbServer, $dbUser, $dbPassword, $db);
 		if ($this->mysqli->connect_errno) {
@@ -35,10 +61,20 @@ final class DbConnection {
 		}
 	}
 
+	/**
+	 * Close connection to database
+	 */
 	public function close() {
 		$this->mysqli->close();
 	}
 
+	/**
+	 * @param  string $sql, sql query to be used
+	 * @param  mixed  $paramsArray, parameters to be used     
+	 * @param  string $paramsTypeString, parameters type
+	 * @return \mysqli statement
+	 * @throws \Exception If query fails
+	 */
 	public function runSql($sql, $paramsArray = null, $paramsTypeString = null) {
 		$statement = $this->mysqli->prepare($sql);
 		if ($statement === FALSE) {
@@ -60,12 +96,16 @@ final class DbConnection {
 		return $statement;
 	}
 
+	/**
+	 * Return id from last insertion
+	 * @return int
+	 */
 	public function getLastInsertedId() {
 		return $this->mysqli->insert_id;
 	}
 
 	/**
-	 * Source: http://php.net/manual/en/mysqli-stmt.bind-param.php#96770
+	 * @Source: http://php.net/manual/en/mysqli-stmt.bind-param.php#96770
 	 * @param  array $arr
 	 * @return array
 	 */

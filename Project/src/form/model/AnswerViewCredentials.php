@@ -2,52 +2,77 @@
 
 namespace form\model;
 
+require_once("./src/common/model/exception/StringLength.php");
+
+/**
+ * @author Peter Emilsson
+ * Represents the user submitted answer for one question
+ */
 class AnswerViewCredentials {
 
-	private $id;
-
-	private $questionId;
-
+	/**
+	 * @var int
+	 */
 	private $answerId;
 
+	/**
+	 * @var string
+	 */
 	private $noteText;
 
-	private function __construct($qId, $aId, $id = null, $noteText = null) {
-		$this->questionId = $qId;
+	/**
+	 * @var integer
+	 */
+	CONST MinStringLength = 2;
+
+	/**
+	 * @var integer
+	 */
+	CONST MaxStringLength = 100;
+
+	/**
+	 * @param int $aId      
+	 * @param string $noteText, not required
+	 */
+	public function __construct($aId, $noteText = null) {
+		if ($noteText !== null)
+			$this->validateNoteText($noteText);
 		$this->answerId = $aId;
-		$this->id = $id;
 		$this->noteText = $noteText;
 	}
 
-	public static function createBasic($qId, $aId) {
-		return new \form\model\AnswerViewCredentials($qId, $aId);
-	}
-
-	public static function createFull($id, $qId, $aId, $noteText) {
-		return new \form\model\AnswerViewCredentials($qId, $aId, $id, $noteText);
-	}
-
-	public function getQuestionId() {
-		return $this->questionId;
-	}
-
+	/**
+	 * @return int
+	 */
 	public function getAnswerId() {
 		return $this->answerId;
 	}
 
-	public function getId() {
-		return $this->id;
+	/**
+	 * @return string
+	 */
+	public function getNoteText() {
+		return $this->noteText;
 	}
 
+	/**
+	 * Compare question id and answer id
+	 * @param  int $qId 
+	 * @param  int $aId 
+	 * @return bool
+	 */
 	public function compare($qId, $aId) {
 		return $qId == $this->questionId && $aId == $this->answerId;
 	}
 
-	public function setId($id) {
-		if ($this->id != null) {
-			throw new \Exception('Id already set');
-		} else {
-			$this->id = $id;
+	/**
+	 * @param  string $noteText
+	 * @throws \form\model\exception\StringLength If note text do not pass the valdiation
+	 */
+	private function validateNoteText($noteText) {
+		if (strlen($noteText) < self::MinStringLength ||
+			strlen($noteText) > self::MaxStringLength) {
+			throw new \common\model\exception\StringLength(self::MinStringLength, self::MaxStringLength);
 		}
 	}
 }

@@ -1,10 +1,14 @@
 <?php
 
-namespace authorization\model;
+namespace user\model;
 
 require_once("./src/user/model/UserCredentials.php");
 require_once("./src/common/model/DbConnection.php");
 
+/**
+ * @author Peter Emilsson
+ * Class used for user database actions
+ */
 class UserDAL {
 
 	/**
@@ -17,13 +21,20 @@ class UserDAL {
 	 */
 	private static $userTable = "user";
 
+	/**
+	 * @var \common\model\DbConnection
+	 */
 	private $dbConnection;
 
 	public function __construct() {
 		$this->dbConnection = \common\model\DbConnection::getInstance();
 	}
 
-	public function userExists(\authorization\model\UserCredentials $userCred) {
+	/**
+	 * @param  \user\model\UserCredentials $userCred
+	 * @return bool
+	 */
+	public function userExists(\user\model\UserCredentials $userCred) {
 		try {
 			$this->getUser($userCred);
 			return true;
@@ -32,7 +43,12 @@ class UserDAL {
 		}
 	}
 
-	public function getUser(\authorization\model\UserCredentials $userCred) {
+	/**
+	 * @param  \user\model\UserCredentials $userCred 
+	 * @return \user\model\UserCredentials
+	 * @throws \Exception If User not found in database
+	 */
+	public function getUser(\user\model\UserCredentials $userCred) {
 		$sql = 'SELECT
 				id, 
 				username, 
@@ -48,16 +64,45 @@ class UserDAL {
 		}
 
 		if ($statement->fetch()) {
-			return \authorization\model\UserCredentials::createFromDbData(
-				new \authorization\model\UserName($username), 
-				\authorization\model\Password::fromEncryptedString($password),
+			return \user\model\UserCredentials::createFromDbData(
+				new \user\model\UserName($username), 
+				\user\model\Password::fromEncryptedString($password),
 				$id);
 		} else {
 			throw new \Exception("User not found in database");
 		}
 	}
 
-	public function insertUser(\authorization\model\UserCredentials $userCred) {
+	/**
+	 * @param  int $id 
+	 * @return \user\model\UserCredentials
+	 */
+	public function getUserById($id) {
+		$sql = 'SELECT
+				id, 
+				username
+				FROM ' . self::$userTable . 
+				' WHERE id = ?';
+
+		$statement = $this->dbConnection->runSql($sql, array($id), "i");
+
+		$result = $statement->bind_result($id, $username);
+		if ($result == FALSE) {
+			throw new \Exception("bind of [$sql] failed " . $statement->error);
+		}
+
+		if ($statement->fetch()) {
+			return \user\model\UserCredentials::createBasic(
+				new \user\model\UserName($username), $id);
+		} else {
+			throw new \Exception("User not found in database");
+		}
+	}
+
+	/**
+	 * @param  \user\model\UserCredentials $userCred
+	 */
+	public function insertUser(\user\model\UserCredentials $userCred) {
 		$sql = "INSERT INTO " . self::$userTable . "
 				(
 					username,
@@ -70,7 +115,11 @@ class UserDAL {
 			"ss");
 	}
 
-	public function insertTempUser(\authorization\model\UserCredentials $userCred, $ip) {
+	/**
+	 * @param  \user\model\UserCredentials $userCred
+	 * @param  string                  	   $ip     
+	 */
+	public function insertTempUser(\user\model\UserCredentials $userCred, $ip) {
 		$sql = "INSERT INTO " . self::$tempUserTable . "
 				(
 					id, 
@@ -88,7 +137,13 @@ class UserDAL {
 		$statement = $this->dbConnection->runSql($sql, $params, "issss");
 	}
 
-	public function getCookieUser($ip, \authorization\model\UserCredentials $userCred) {
+	/**
+	 * @param  string                   $ip       
+	 * @param  \user\model\UserCredentials $userCred 
+	 * @return \user\model\UserCredentials
+	 * @throws \Exception If user not found
+	 */
+	public function getCookieUser($ip, \user\model\UserCredentials $userCred) {
 		$tempPassword = $userCred->getTemporaryPassword()->getTemporaryPassword();
 		$sql = 'SELECT
 				id,
@@ -108,10 +163,10 @@ class UserDAL {
 		}
 
 		if ($statement->fetch()) {
-			return \authorization\model\UserCredentials::createFromDbCookieData(
-												new \authorization\model\UserName($username), 
-												\authorization\model\Password::emptyPassword(),
-												\authorization\model\TemporaryPasswordServer::createFromDb(
+			return \user\model\UserCredentials::createFromDbCookieData(
+												new \user\model\UserName($username), 
+												\user\model\Password::emptyPassword(),
+												\user\model\TemporaryPasswordServer::createFromDb(
 													$cookie_expire, $tempPassword),
 												$id);
 		} else {

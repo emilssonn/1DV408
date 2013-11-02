@@ -1,15 +1,13 @@
 <?php
 
-namespace authorization\model;
-
+namespace user\model;
 
 /**
+ * @author Daniel Toll - https://github.com/dntoll
+ * Changes by Peter Emilsson
  * The client representation of a temporary password
  */
 class TemporaryPasswordClient extends TemporaryPassword{
-	
-	
-	
 	/**
 	 * note: Private since it is called with fromCookie
 	 * @param String $cookieString 
