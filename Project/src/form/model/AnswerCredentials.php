@@ -38,7 +38,7 @@ class AnswerCredentials {
 	/**
 	 * @var integer
 	 */
-	CONST MaxStringLength = 150;
+	CONST MaxStringLength = 100;
 
 	/**
 	 * @param string $title 

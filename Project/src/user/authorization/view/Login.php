@@ -4,7 +4,7 @@ namespace user\authorization\view;
 
 require_once("./src/user/authorization/model/User.php");
 require_once("./src/user/authorization/model/LoginObserver.php");
-require_once("./src/common/filter.php");
+require_once("./src/common/Filter.php");
 require_once("./src/common/view/UserMessage.php");
 
 /**

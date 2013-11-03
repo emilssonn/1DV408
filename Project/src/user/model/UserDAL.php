@@ -155,7 +155,7 @@ class UserDAL {
 
 		$statement = $this->dbConnection->runSql($sql, 
 			array($userCred->getUsername(), $tempPassword, $ip), 
-			"ssi");
+			"sss");
 
 		$result = $statement->bind_result($id, $username, $cookie_expire);
 		if ($result == FALSE) {

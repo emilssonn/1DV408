@@ -260,16 +260,17 @@ class CreateQuestion extends \form\view\Create {
 			}
 		}
 		$validationData = "data-validation='length' data-validation-length='$minLength-$maxLength'";
-		$html .= "	<div class='input-group'>
-						<span class='input-group-addon'>
-        					<input type='radio' disabled>
-      					</span>
-      				<input type='text' value='$title' class='form-control' placeholder='Answer' id='$as$i' name='$as$i' $validationData>
-      				<span class='input-group-addon'>
-      					Text input:  <input type='checkbox' id='$at$i' name='$at$i' $checked>
-      				</span>
-    			</div><!-- /input-group -->
-    		</div>";
+		
+		$html .= "	<label for='$as$i' class='control-label'>$i</label>
+					<div>
+					   	<input type='text' value='$title' class='form-control' placeholder='Answer' maxlength='$maxLength' id='$as$i' name='$as$i' $validationData>
+					</div>
+					<div class='checkbox'>
+        				<label>
+          					<input type='checkbox' id='$at$i' name='$at$i' $checked> Text input
+        				</label>
+     				</div>
+  				</div>";
     	return $html;
 	}
 

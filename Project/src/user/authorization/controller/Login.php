@@ -30,8 +30,7 @@ class Login implements \common\controller\IController {
 	public function __construct(\user\authorization\view\Login $loginView, 
 								\application\view\Navigation $navigationView) {
 
-		$this->loginModel = new \user\authorization\model\Login();
-			
+		$this->loginModel = new \user\authorization\model\Login();	
 		$this->loginView = $loginView;
 		$this->navigationView = $navigationView;
 	}

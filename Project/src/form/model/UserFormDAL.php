@@ -122,8 +122,11 @@ class UserFormDAL {
 	public function getFormResultByUser($subFormId, \form\model\TemplateFormDAL $templateFormDAL) {
 		$submittedFormCredentials = $this->getSubmittedFormsByUser($templateFormDAL, $subFormId);
 
-		$submittedFormCredentials[0]->addAnswersResult($this->userAnswerDAL->getUserFormResult($subFormId));
-
+		if (count($submittedFormCredentials) > 0)
+			$submittedFormCredentials[0]->addAnswersResult($this->userAnswerDAL->getUserFormResult($subFormId));
+		else
+			throw new \Exception();
+		
 		return $submittedFormCredentials[0];
 	}
 

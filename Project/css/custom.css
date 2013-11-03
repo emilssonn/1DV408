@@ -10,3 +10,8 @@ input[type="text"]:disabled
 textarea {
 	max-width: 100%;
 }
+
+
+body {
+	word-wrap: break-word;
+}

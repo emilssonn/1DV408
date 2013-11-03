@@ -27,6 +27,9 @@ class TemplateAnswerDAL {
 	 */
 	private $user;
 
+	/**
+	 * @param \user\model\UserCredentials $user 
+	 */
 	public function __construct(\user\model\UserCredentials $user = null) {
 		$this->dbConnection = \common\model\DbConnection::getInstance();
 		$this->user = $user;

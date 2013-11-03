@@ -40,6 +40,7 @@ class ManageSubmittedForm extends \form\view\SubmittedForm {
 		$html .= $this->getQuestionsHTML($edit);
 		if ($edit)
 			$html .= $this->getFormFooter();
+		$html .= "</div></div>";
 		return $html;
 	}
 
@@ -57,6 +58,8 @@ class ManageSubmittedForm extends \form\view\SubmittedForm {
 		$editLink = $this->navigationView->getEditSubmittedFormLink($formId, $userFormId); 
 		$endDate = $this->submittedFormCredentials->getEndDate();
 		$html = "
+			<div class='row'>
+				<div class='col-xs-12 col-sm-12 col-lg-12'>
 				<h2>$formTitle</h2>
 				<p class='lead'>$formDescription</p>
 				<p>Submitted: $formSubmitted</p>
@@ -112,8 +115,10 @@ class ManageSubmittedForm extends \form\view\SubmittedForm {
 			$aCredArray = $qCred->getAnswers();
 			$nr = $key + 1;
 			$html .= "
+				<div class='col-xs-12'>
 					<h4>$nr: $title$required</h4>
-					<p>$description</p>";
+					<p>$description</p>
+				</div>";
 
 			if ($this->isSubmitning()) {
 				$html .= $this->getAnswersHTML($qCred);

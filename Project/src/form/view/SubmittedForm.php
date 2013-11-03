@@ -216,9 +216,11 @@ abstract class SubmittedForm extends \form\view\FormView {
 		//If the answer requires text input from user
 		if (\form\model\AnswerType::GetName(1) == $answerCredentials->getType()) {
 			$answerText = $this->getAnswerInput($id);
-			$html .= "<input type='text' class='form-control' value='$answerText' 
+			$html .= "<div class='col-xs-12'>
+					<input type='text' class='form-control' value='$answerText' 
 						name='$answerTextPost$id' placeholder='Enter your answer'
-						maxlength='$maxLength'>";
+						maxlength='$maxLength'>
+					</div>";
 		} 
 		$html .= "</div>";
       				

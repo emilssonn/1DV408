@@ -197,15 +197,16 @@ class Application {
 		$listForms = $this->navigationView->getListFormsLink();
 		$listMyForms = $this->navigationView->getListMyFormsLink();
 		$listMySubmittedForms = $this->navigationView->getListMySubmittedFormsLink();
+		$logOut = $this->navigationView->getLogoutLink();
 		return "
 			<div id='sidebar-wrapper'>
         		<ul class='sidebar-nav'>
-          			<li class='sidebar-brand'><a href='#'>Beta</a></li>
           			<li><a href='$home'>Home</a></li>
 			        <li><a href='$create'>Create New Form</a></li>
 			        <li><a href='$listMyForms'>Manage My Forms</a></li>
 			        <li><a href='$listMySubmittedForms'>My Submitted Forms</a></li>
 			        <li><a href='$listForms'>Forms</a></li>
+			        <li><a href='$logOut'>Sign out</a></li>
         		</ul>
       		</div>";
 	}
@@ -215,28 +216,17 @@ class Application {
 	 */
 	private function getNavBar() {
 		$home = $this->navigationView->getGoToHomeLink();
-		$logOut = $this->navigationView->getLogoutLink();
+		
 		return "
 			<div class='navbar navbar-fixed-top navbar-default' role='navigation'>
-
 				<div class='navbar-header'>
-
-					<a class='navbar-brand' href='#'>Simple forms</a>
+					<a class='navbar-brand' href='$home'>Simple forms</a>
 					<button type='button' class='navbar-toggle' id='menu-toggle'>
 						<span class='icon-bar'></span>
 						<span class='icon-bar'></span>
 						<span class='icon-bar'></span>
-					</button>
-
-						          
+					</button>			          
 				</div>
-
-				<div class='collapse navbar-collapse'>
-
-					<ul class='nav navbar-nav navbar-right'>
-						<li><a href='$logOut'>Sign Out</a></li>
-					</ul>
-				</div><!-- /.nav-collapse -->
 			</div><!-- /.navbar -->";
 	}
 

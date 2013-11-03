@@ -30,7 +30,9 @@ class AnswerForm extends \form\view\SubmittedForm {
 		$title = $this->form->getTitle();
 		$description = $this->form->getDescription();
 		return "
-			<form action='" . $this->navigationView->getGoToFormLink($this->getFormId()) . "' method='post' enctype='multipart/form-data'>
+			<div class='row'>
+			<div class='col-xs-12 col-sm-12 col-lg-12'>
+				<form action='" . $this->navigationView->getGoToFormLink($this->getFormId()) . "' method='post' enctype='multipart/form-data'>
 				<h2>$title</h2>
 				<p>$description</p>
 				<fieldset>
@@ -46,7 +48,9 @@ class AnswerForm extends \form\view\SubmittedForm {
 				</fieldset>
 				<input type='submit' value='Submit Answers' class='btn btn-success'>
 				<a href='$listLink' class='btn btn-warning'>Cancel</a>
-			</form>";
+			</form>
+			</div>
+			</div>";
 	}
 
 	/**
@@ -62,8 +66,10 @@ class AnswerForm extends \form\view\SubmittedForm {
 			$required = $qCred->isRequired() ? "*" : "";
 			$nr = $key + 1;
 			$html .= "
+				<div class='col-xs-12'>
 					<h4>$nr: $title$required</h4>
-					<p>$description</p>";
+					<p>$description</p>
+				</div>";
 
 			$html .= $this->getAnswersHTML($qCred);
 			if ($qCred->commentText()) {

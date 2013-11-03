@@ -145,7 +145,7 @@ class UserAnswerDAL {
 
 	/**
 	 * @param  \form\model\SubmittedFormCredentials $submittedFormCredentials
-	 * @param  array ?form\model\QuestionViewCredentials $answers                       
+	 * @param  array \form\model\QuestionViewCredentials $answers                       
 	 * @throws \Exception If database query fails                  
 	 */
 	public function updateUserAnswers(\form\model\SubmittedFormCredentials $submittedFormCredentials, 
@@ -178,7 +178,7 @@ class UserAnswerDAL {
 	}
 
 	/**
-	 * @param  array of form\model\QuestionViewCredentials $updateAnswers 
+	 * @param  array of \form\model\QuestionViewCredentials $updateAnswers 
 	 * @throws \Exception If database query fails        
 	 */
 	private function updateOldAnswers($updateAnswers) {

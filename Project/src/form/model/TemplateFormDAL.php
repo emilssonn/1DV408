@@ -193,7 +193,8 @@ class TemplateFormDAL {
 			$time = Date("Y-m-d H:i");
 			$sql .= " WHERE published = ? 
 					  AND end_date > '$time'
-					  ORDER BY created_date DESC, end_date ASC";
+					  ORDER BY created_date DESC, end_date ASC
+					  LIMIT 500";//Hardcoded limit, bad
 			$statement = $this->dbConnection->runSql($sql, array(1), "i");
 		}
 

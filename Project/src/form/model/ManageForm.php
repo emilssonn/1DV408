@@ -78,7 +78,7 @@ class ManageForm {
 
 	/**
 	 * @param  \form\model\SubmittedFormCredentials 		$submittedFormCredentials 
-	 * @param  array of ?form\model\QuestionViewCredentials $qViewCredArray                
+	 * @param  array of \form\model\QuestionViewCredentials $qViewCredArray                
 	 */
 	public function updateAnswers(\form\model\SubmittedFormCredentials $submittedFormCredentials, $qViewCredArray) {
 		try {
@@ -205,7 +205,7 @@ class ManageForm {
 	}
 
 	/**
-	 * @todo  it is possible to publish a form and then delete all question and its still public
+	 * @todo  it is possible to publish a form and then delete all question and it will still be public
 	 * @param  int $formId        
 	 */
 	public function publishForm($formId) {
